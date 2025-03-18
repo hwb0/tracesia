@@ -1,14 +1,21 @@
 :root {
     --primary-color: #2196f3;
-    --secondary-color: #1976d2;
-    --background-color: #f5f5f5;
-    --panel-background: #ffffff;
-    --text-color: #333333;
+    --secondary-color: #1e88e5;
+    --text-color: #333;
     --border-color: #e0e0e0;
+    --panel-background: #ffffff;
+    --background-color: #f5f5f5;
+    --safe-area-inset-top: 0px;
+    --safe-area-inset-bottom: 0px;
     --mobile-header-height: 56px;
     --mobile-footer-height: 64px;
-    --safe-area-inset-top: env(safe-area-inset-top, 0px);
-    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+    :root {
+        --safe-area-inset-top: env(safe-area-inset-top);
+        --safe-area-inset-bottom: env(safe-area-inset-bottom);
+    }
 }
 
 * {
@@ -426,6 +433,7 @@ body {
     z-index: 1000;
     padding: 0 20px;
     padding-bottom: var(--safe-area-inset-bottom);
+    box-sizing: border-box;
 }
 
 /* 按钮样式 */
@@ -490,6 +498,8 @@ body {
         padding: 16px;
         gap: 12px;
         margin-top: calc(var(--mobile-header-height) + var(--safe-area-inset-top));
+        margin-bottom: calc(var(--mobile-footer-height) + var(--safe-area-inset-bottom));
+        overflow: hidden;
     }
 
     .control-panel {
@@ -572,8 +582,10 @@ body {
     }
 
     .export-bar {
-        height: var(--mobile-footer-height);
-        padding-bottom: var(--safe-area-inset-bottom);
+        height: auto;
+        min-height: var(--mobile-footer-height);
+        padding-bottom: max(var(--safe-area-inset-bottom), 8px);
+        padding-top: 8px;
     }
 }
 
@@ -589,7 +601,13 @@ body {
     }
     
     .export-bar {
-        padding-bottom: env(safe-area-inset-bottom);
+        padding-bottom: max(env(safe-area-inset-bottom), 8px);
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            margin-bottom: calc(var(--mobile-footer-height) + env(safe-area-inset-bottom));
+        }
     }
 }
 
@@ -735,4 +753,84 @@ select:focus, .width-select:focus {
 
 .panel-sections-container::-webkit-scrollbar-thumb:hover {
     background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* 模态框样式 */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: auto;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 500px;
+    background-color: var(--panel-background);
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    padding: 24px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    font-size: 1.2em;
+}
+
+.modal-content p {
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+#export-message {
+    margin-bottom: 15px;
+    line-height: 1.5;
+    font-size: 0.95em;
+}
+
+#export-image-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#export-image-container img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 18px;
+        max-height: 85vh;
+    }
 } 

@@ -297,6 +297,12 @@ class LineGenerator {
         const resolution = parseInt(document.getElementById('export-resolution').value);
         const format = document.getElementById('export-format').value;
         
+        // SVG格式特殊处理
+        if (format === 'svg') {
+            this.exportSVG();
+            return;
+        }
+        
         // 创建临时画布用于导出
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = this.width * resolution;
@@ -323,10 +329,152 @@ class LineGenerator {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const filename = `线迹幻境_${timestamp}.${format}`;
         
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = tempCanvas.toDataURL(`image/${format}`);
-        link.click();
+        try {
+            // 检测设备类型
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            // 生成数据URL
+            const imgData = tempCanvas.toDataURL(`image/${format}`, format === 'jpg' ? 0.95 : undefined);
+            
+            // 使用不同的方法处理不同的设备
+            if (isIOS) {
+                // iOS设备特殊处理 - 在新窗口显示图片供用户长按保存
+                const newTab = window.open();
+                if (newTab) {
+                    newTab.document.write(`
+                        <html>
+                            <head>
+                                <title>保存图片</title>
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                                <style>
+                                    body {
+                                        margin: 0;
+                                        padding: 20px;
+                                        display: flex;
+                                        flex-direction: column;
+                                        align-items: center;
+                                        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                                        text-align: center;
+                                        background-color: #f7f7f7;
+                                        color: #333;
+                                    }
+                                    .container {
+                                        max-width: 100%;
+                                        width: 100%;
+                                        padding: 16px;
+                                        box-sizing: border-box;
+                                        display: flex;
+                                        flex-direction: column;
+                                        align-items: center;
+                                    }
+                                    img {
+                                        max-width: 100%;
+                                        height: auto;
+                                        border: 1px solid #eee;
+                                        margin-bottom: 20px;
+                                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                                        border-radius: 4px;
+                                        background-color: white;
+                                    }
+                                    h3 {
+                                        margin-bottom: 15px;
+                                        color: #2196f3;
+                                    }
+                                    p {
+                                        color: #666;
+                                        line-height: 1.5;
+                                        margin-bottom: 20px;
+                                    }
+                                    .tips {
+                                        background-color: #e3f2fd;
+                                        border-radius: 8px;
+                                        padding: 12px;
+                                        margin-bottom: 15px;
+                                        width: 100%;
+                                        box-sizing: border-box;
+                                        text-align: left;
+                                    }
+                                    .tips p {
+                                        margin: 5px 0;
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="container">
+                                    <h3>长按图片保存到相册</h3>
+                                    <div class="tips">
+                                        <p>• 点击并按住图片</p>
+                                        <p>• 选择"存储图像"或"添加到照片"</p>
+                                        <p>• 如果保存失败，请尝试截屏保存</p>
+                                    </div>
+                                    <img src="${imgData}" alt="${filename}">
+                                </div>
+                            </body>
+                        </html>
+                    `);
+                    newTab.document.close();
+                } else {
+                    // 如果无法打开新窗口，则显示模态框
+                    this.showExportModal('无法打开新窗口，请长按下方图片保存', imgData);
+                }
+            } else if (isMobile) {
+                // 其他移动设备 - 尝试使用a标签下载，如果失败则显示模态框
+                try {
+                    const link = document.createElement('a');
+                    link.href = imgData;
+                    link.download = filename;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        
+                        // 提示用户检查下载
+                        setTimeout(() => {
+                            this.showExportModal('图片已准备下载，如果没有自动保存，请长按下方图片并选择"保存图片"', imgData);
+                        }, 1000);
+                    }, 100);
+                } catch (e) {
+                    // 回退到显示模态框
+                    this.showExportModal('自动下载失败，请长按下方图片保存', imgData);
+                }
+            } else {
+                // 桌面设备 - 使用标准下载方式
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = imgData;
+                link.click();
+            }
+        } catch (e) {
+            console.error('导出图片失败:', e);
+            
+            // 通用错误处理方式
+            this.showExportModal('导出图片失败，正在尝试备用方法...', null);
+            
+            // 备用方法：创建Blob对象
+            try {
+                tempCanvas.toBlob((blob) => {
+                    if (blob) {
+                        const blobUrl = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = filename;
+                        link.href = blobUrl;
+                        link.click();
+                        
+                        // 更新模态框
+                        this.updateExportModal('图片已准备下载，请检查您的下载文件夹', null);
+                        
+                        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                    } else {
+                        this.updateExportModal('图片生成失败，请尝试降低分辨率或使用其他浏览器', null);
+                    }
+                }, `image/${format}`, format === 'jpg' ? 0.95 : undefined);
+            } catch (e2) {
+                console.error('备用导出方法失败:', e2);
+                this.updateExportModal('图片导出失败，请尝试以下方法：<br>1. 降低分辨率<br>2. 使用其他浏览器<br>3. 截取屏幕保存', null);
+            }
+        }
     }
 
     drawLineOnCanvas(line, ctx, resolution) {
@@ -345,6 +493,177 @@ class LineGenerator {
         
         ctx.stroke();
     }
+
+    // 显示导出模态框
+    showExportModal(message, imgData) {
+        const modal = document.getElementById('export-modal');
+        const messageEl = document.getElementById('export-message');
+        const imageContainer = document.getElementById('export-image-container');
+        const closeBtn = document.getElementById('modal-close-btn');
+        
+        // 清空之前的内容
+        messageEl.innerHTML = '';
+        imageContainer.innerHTML = '';
+        
+        // 设置消息
+        messageEl.innerHTML = message;
+        
+        // 如果有图片数据，添加图片
+        if (imgData) {
+            const img = document.createElement('img');
+            img.src = imgData;
+            img.alt = '导出图片';
+            imageContainer.appendChild(img);
+        }
+        
+        // 显示模态框
+        modal.classList.add('active');
+        
+        // 关闭按钮事件
+        closeBtn.onclick = function() {
+            modal.classList.remove('active');
+        };
+        
+        // 点击模态框背景关闭
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        };
+    }
+
+    // 更新导出模态框
+    updateExportModal(message, imgData) {
+        const messageEl = document.getElementById('export-message');
+        const imageContainer = document.getElementById('export-image-container');
+        
+        // 更新消息
+        if (message) {
+            messageEl.innerHTML = message;
+        }
+        
+        // 更新图片(如果有)
+        if (imgData) {
+            imageContainer.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = imgData;
+            img.alt = '导出图片';
+            imageContainer.appendChild(img);
+        }
+    }
+
+    // 导出SVG格式
+    exportSVG() {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `线迹幻境_${timestamp}.svg`;
+        
+        // 检测设备类型
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // 创建SVG
+        const bg = document.getElementById('bg-color').value;
+        const bgOpacity = document.getElementById('bg-opacity').value / 100;
+        const lineCount = parseInt(document.getElementById('line-count').value);
+        
+        // 创建SVG元素
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", this.width);
+        svg.setAttribute("height", this.height);
+        svg.setAttribute("xmlns", svgNS);
+        svg.setAttribute("viewBox", `0 0 ${this.width} ${this.height}`);
+        
+        // 添加背景矩形
+        const rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("width", "100%");
+        rect.setAttribute("height", "100%");
+        rect.setAttribute("fill", bg);
+        rect.setAttribute("opacity", bgOpacity);
+        svg.appendChild(rect);
+        
+        // 设置随机种子
+        const lineSeed = Date.now();
+        Math.seedrandom && Math.seedrandom(lineSeed);
+        
+        // 生成线条
+        for (let i = 0; i < lineCount; i++) {
+            const line = this.generateLine();
+            
+            // 创建路径元素
+            const path = document.createElementNS(svgNS, "path");
+            path.setAttribute("d", `M${line.start.x},${line.start.y} C${line.control1.x},${line.control1.y} ${line.control2.x},${line.control2.y} ${line.end.x},${line.end.y}`);
+            path.setAttribute("stroke", "#000000");
+            path.setAttribute("stroke-width", line.width);
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke-linecap", line.cap);
+            
+            svg.appendChild(path);
+        }
+        
+        // 转换为SVG字符串
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        
+        try {
+            if (isIOS) {
+                // iOS设备无法直接下载SVG，提供查看和复制选项
+                this.showExportModal(`
+                    <strong>SVG格式在iOS上不支持直接保存</strong><br>
+                    请选择以下方法之一：<br>
+                    1. 截屏并编辑保存图片<br>
+                    2. 使用PNG或JPG格式重新导出<br>
+                    3. 在电脑上使用这个功能
+                `, null);
+                
+                // 创建一个查看SVG的链接
+                const viewLink = document.createElement('a');
+                viewLink.href = svgUrl;
+                viewLink.target = '_blank';
+                viewLink.textContent = '在新窗口查看SVG';
+                viewLink.className = 'btn';
+                viewLink.style.marginRight = '10px';
+                viewLink.style.display = 'inline-block';
+                viewLink.style.textDecoration = 'none';
+                
+                // 添加到模态框
+                document.getElementById('export-image-container').appendChild(viewLink);
+            } else if (isMobile) {
+                // 其他移动设备 - 尝试直接保存
+                const link = document.createElement('a');
+                link.href = svgUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(svgUrl);
+                    
+                    this.showExportModal(`
+                        <strong>SVG文件已准备下载</strong><br>
+                        如果下载失败，您可以：<br>
+                        1. 尝试使用PNG或JPG格式<br>
+                        2. 在电脑上使用SVG格式
+                    `, null);
+                }, 100);
+            } else {
+                // 桌面设备 - 标准下载
+                const link = document.createElement('a');
+                link.href = svgUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(svgUrl);
+                }, 100);
+            }
+        } catch (e) {
+            console.error('SVG导出失败:', e);
+            this.showExportModal('SVG导出失败，请尝试使用PNG或JPG格式', null);
+        }
+    }
 }
 
 // 初始化应用
@@ -354,6 +673,11 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // 移动端菜单控制
     initializeMobileMenu();
+    
+    // 初始化模态框关闭事件
+    document.getElementById('modal-close-btn').addEventListener('click', () => {
+        document.getElementById('export-modal').classList.remove('active');
+    });
 });
 
 // 移动端菜单初始化
