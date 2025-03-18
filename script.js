@@ -2,27 +2,147 @@ class LineGenerator {
     constructor() {
         this.canvas = document.getElementById('main-canvas');
         this.ctx = this.canvas.getContext('2d');
+        
+        // 初始化基本属性
+        this.width = 500;  // 默认宽度
+        this.height = 500; // 默认高度
+        this.currentScaleFactor = 1; // 默认缩放比例
+        this.resizeTimeout = null;   // 用于resize节流
+        
+        // 设置事件监听
         this.setupEventListeners();
+        
+        // 初始化画布
         this.initializeCanvas();
+        
+        // 初始化移动设备触摸事件支持
+        if (this.isMobileDevice()) {
+            this.setupMobileTouchSupport();
+        }
     }
 
     initializeCanvas() {
         this.width = parseInt(document.getElementById('width').value);
         this.height = parseInt(document.getElementById('height').value);
         
-        // 设置canvas的实际尺寸
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
+        // 获取显示模式
+        const displayMode = document.getElementById('display-mode').value;
         
-        // 计算缩放后的尺寸
-        const zoom = parseFloat(document.getElementById('zoom').value);
-        const displayWidth = this.width * zoom;
-        const displayHeight = this.height * zoom;
+        // 获取容器元素
+        const container = document.querySelector('.canvas-container');
+        
+        // 获取容器的可用宽度和高度（减去内边距）
+        const containerWidth = container.clientWidth - 40; // 留出边距
+        const containerHeight = container.clientHeight - 40; // 留出边距
+        
+        // 判断容器是否足够大显示原始尺寸
+        const canFitOriginalSize = (this.width <= containerWidth && this.height <= containerHeight);
+        
+        // 如果容器足够大且不是强制适应模式，则使用原始尺寸
+        if (canFitOriginalSize && displayMode !== 'fit-width' && displayMode !== 'fit-height') {
+            this.setCanvasSize(this.width, this.height, 1, "原始尺寸");
+            return;
+        }
+        
+        // 计算宽高比
+        const canvasRatio = this.width / this.height;
+        const containerRatio = containerWidth / containerHeight;
+        
+        // 根据显示模式决定如何缩放
+        switch (displayMode) {
+            case 'original':
+                // 原始尺寸 (1:1) - 即使容器不够大也强制使用原始尺寸
+                this.setCanvasSize(this.width, this.height, 1, "原始尺寸");
+                break;
+                
+            case 'fit-width':
+                // 适应宽度
+                const widthScale = containerWidth / this.width;
+                this.setCanvasSize(containerWidth, containerWidth / canvasRatio, widthScale, "适应宽度");
+                break;
+                
+            case 'fit-height':
+                // 适应高度
+                const heightScale = containerHeight / this.height;
+                this.setCanvasSize(containerHeight * canvasRatio, containerHeight, heightScale, "适应高度");
+                break;
+                
+            case 'auto':
+            default:
+                // 自动适应容器
+                if (canvasRatio > containerRatio) {
+                    // Canvas比容器更宽，以宽度为基准缩放
+                    const autoWidthScale = containerWidth / this.width;
+                    this.setCanvasSize(containerWidth, containerWidth / canvasRatio, autoWidthScale, "自适应");
+                } else {
+                    // Canvas比容器更高或相等，以高度为基准缩放
+                    const autoHeightScale = containerHeight / this.height;
+                    this.setCanvasSize(containerHeight * canvasRatio, containerHeight, autoHeightScale, "自适应");
+                }
+                break;
+        }
+    }
+    
+    // 辅助方法：设置Canvas尺寸并应用高质量渲染
+    setCanvasSize(displayWidth, displayHeight, scaleFactor, modeName) {
+        // 设置Canvas的实际尺寸（画布的实际分辨率）
+        // 检查是否需要使用高DPI渲染以避免模糊
+        const useHighDPI = document.getElementById('high-quality').checked;
+        
+        // 获取设备像素比
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        
+        if (useHighDPI && scaleFactor < 1) {
+            // 高质量模式：保持Canvas分辨率不变，只缩小显示尺寸
+            // 此时Canvas的绘图分辨率为原始尺寸
+            this.canvas.width = this.width;
+            this.canvas.height = this.height;
+            
+            // 设置分辨率相关属性
+            this.ctx.imageSmoothingEnabled = true;
+            this.ctx.imageSmoothingQuality = 'high';
+            
+            // 应用0.5像素偏移以防止模糊
+            this.ctx.translate(0.5, 0.5);
+            
+            console.log(`高质量模式: 使用原始尺寸 ${this.width}x${this.height}`);
+        } else {
+            // 标准模式：计算考虑设备像素比的尺寸
+            const canvasWidth = Math.round(displayWidth * devicePixelRatio);
+            const canvasHeight = Math.round(displayHeight * devicePixelRatio);
+            
+            this.canvas.width = canvasWidth;
+            this.canvas.height = canvasHeight;
+            
+            // 缩放上下文以匹配设备像素比
+            this.ctx.scale(devicePixelRatio, devicePixelRatio);
+            
+            // 应用0.5像素偏移以防止模糊
+            this.ctx.translate(0.5, 0.5);
+            
+            console.log(`标准模式: 使用缩放尺寸 ${canvasWidth}x${canvasHeight} (DPR: ${devicePixelRatio})`);
+        }
+        
+        // 更新缩放信息显示
+        const scaleInfo = document.getElementById('zoom-value');
+        if (scaleInfo) {
+            scaleInfo.textContent = `${scaleFactor.toFixed(2)}x (${modeName})`;
+        }
         
         // 设置canvas的显示尺寸
         this.canvas.style.width = `${displayWidth}px`;
         this.canvas.style.height = `${displayHeight}px`;
         
+        // 重置transform，避免之前的变换影响
+        this.canvas.style.transform = 'translate(-50%, -50%)';
+        
+        // 保存当前缩放比例，供触摸交互使用
+        this.currentScaleFactor = scaleFactor;
+        
+        // 设置渲染品质相关CSS
+        this.canvas.style.imageRendering = '-webkit-optimize-contrast';
+        
+        // 在更改尺寸后重绘Canvas
         this.draw();
     }
 
@@ -30,9 +150,24 @@ class LineGenerator {
         // 尺寸控制
         document.getElementById('width').addEventListener('change', () => this.initializeCanvas());
         document.getElementById('height').addEventListener('change', () => this.initializeCanvas());
-        document.getElementById('zoom').addEventListener('input', (e) => {
-            document.getElementById('zoom-value').textContent = `${e.target.value}x`;
-            this.initializeCanvas();
+        document.getElementById('display-mode').addEventListener('change', () => this.initializeCanvas());
+        document.getElementById('high-quality').addEventListener('change', () => this.initializeCanvas());
+
+        // 窗口大小变化时重新计算Canvas尺寸
+        window.addEventListener('resize', () => {
+            // 使用节流函数避免频繁触发
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = setTimeout(() => {
+                this.initializeCanvas();
+            }, 100);
+        });
+
+        // 设备方向变化时重新计算Canvas尺寸（移动设备专用）
+        window.addEventListener('orientationchange', () => {
+            // 方向变化后需要稍微延迟，等DOM更新完成
+            setTimeout(() => {
+                this.initializeCanvas();
+            }, 300);
         });
 
         // 快捷尺寸按钮
@@ -231,6 +366,23 @@ class LineGenerator {
         // 清空画布
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+        // 检查是否处于高质量模式
+        const useHighDPI = document.getElementById('high-quality').checked;
+        const scaleFactor = this.currentScaleFactor || 1;
+        
+        // 如果在高质量模式下且缩放比例小于1，需要调整绘图上下文
+        if (useHighDPI && scaleFactor < 1) {
+            // 保存当前上下文状态
+            this.ctx.save();
+            
+            // 特殊处理：如果画布尺寸和原始尺寸不同，需要进行缩放调整
+            if (this.canvas.width !== this.width || this.canvas.height !== this.height) {
+                // 设置画布尺寸为原始尺寸以获得最高质量
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+            }
+        }
+
         // 绘制背景
         const bgColor = document.getElementById('bg-color').value;
         const bgOpacity = document.getElementById('bg-opacity').value / 100;
@@ -248,49 +400,110 @@ class LineGenerator {
             const line = this.generateLine();
             this.drawLine(line);
         }
+        
+        // 如果在高质量模式下且进行了上下文调整，恢复上下文
+        if (useHighDPI && scaleFactor < 1) {
+            this.ctx.restore();
+        }
 
+        // 获取显示模式
+        const displayMode = document.getElementById('display-mode').value;
+        const displayModeText = displayMode === 'auto' ? '自适应' : 
+                               displayMode === 'original' ? '原始尺寸' : 
+                               displayMode === 'fit-width' ? '适应宽度' : '适应高度';
+        
         // 更新状态栏
+        const qualityText = useHighDPI ? " / 高质量渲染" : "";
         document.getElementById('status-text').textContent = 
-            `线迹数: ${lineCount} / 画布尺寸: ${this.width}x${this.height}`;
+            `线迹数: ${lineCount} / 画布尺寸: ${this.width}x${this.height} / 显示模式: ${displayModeText}${qualityText}`;
     }
 
     drawLine(line) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(line.start.x, line.start.y);
-        this.ctx.bezierCurveTo(
-            line.control1.x, line.control1.y,
-            line.control2.x, line.control2.y,
-            line.end.x, line.end.y
-        );
+        // 保存当前绘图状态
+        this.ctx.save();
+        
+        // 设置线条平滑相关属性
         this.ctx.lineWidth = line.width;
         this.ctx.strokeStyle = '#000000';
         
         // 使用线条对象中的端点样式
-        this.ctx.lineCap = line.cap;
+        this.ctx.lineCap = line.cap || 'round'; // 默认使用圆形端点
+        this.ctx.lineJoin = 'round'; // 添加连接点样式为圆形
         
+        // 启用抗锯齿
+        if (typeof this.ctx.imageSmoothingEnabled !== 'undefined') {
+            this.ctx.imageSmoothingEnabled = true;
+            this.ctx.imageSmoothingQuality = 'high';
+        }
+        
+        // 像素精确对齐 - 使用0.5偏移避免模糊
+        const offset = 0.5;
+        
+        // 计算偏移后的坐标
+        const startX = Math.floor(line.start.x) + offset;
+        const startY = Math.floor(line.start.y) + offset;
+        const control1X = Math.floor(line.control1.x) + offset;
+        const control1Y = Math.floor(line.control1.y) + offset;
+        const control2X = Math.floor(line.control2.x) + offset;
+        const control2Y = Math.floor(line.control2.y) + offset;
+        const endX = Math.floor(line.end.x) + offset;
+        const endY = Math.floor(line.end.y) + offset;
+        
+        // 绘制贝塞尔曲线
+        this.ctx.beginPath();
+        this.ctx.moveTo(startX, startY);
+        this.ctx.bezierCurveTo(
+            control1X, control1Y,
+            control2X, control2Y,
+            endX, endY
+        );
+        
+        // 进行描边
         this.ctx.stroke();
+        
+        // 恢复之前的绘图状态
+        this.ctx.restore();
     }
 
     drawGrid() {
-        const gridSize = 50;
+        // 保存当前绘图状态
+        this.ctx.save();
+        
+        // 设置网格样式
         this.ctx.strokeStyle = '#e0e0e0';
         this.ctx.lineWidth = 0.5;
-
+        
+        // 设置抗锯齿
+        if (typeof this.ctx.imageSmoothingEnabled !== 'undefined') {
+            this.ctx.imageSmoothingEnabled = true;
+        }
+        
+        // 计算网格大小
+        const gridSize = 50;
+        const offset = 0.5; // 0.5像素偏移，防止模糊
+        
         // 绘制垂直线
         for (let x = 0; x <= this.width; x += gridSize) {
+            const alignedX = Math.floor(x) + offset;
+            
             this.ctx.beginPath();
-            this.ctx.moveTo(x, 0);
-            this.ctx.lineTo(x, this.height);
+            this.ctx.moveTo(alignedX, 0);
+            this.ctx.lineTo(alignedX, this.height);
             this.ctx.stroke();
         }
 
         // 绘制水平线
         for (let y = 0; y <= this.height; y += gridSize) {
+            const alignedY = Math.floor(y) + offset;
+            
             this.ctx.beginPath();
-            this.ctx.moveTo(0, y);
-            this.ctx.lineTo(this.width, y);
+            this.ctx.moveTo(0, alignedY);
+            this.ctx.lineTo(this.width, alignedY);
             this.ctx.stroke();
         }
+        
+        // 恢复绘图状态
+        this.ctx.restore();
     }
 
     exportImage() {
@@ -897,12 +1110,246 @@ class LineGenerator {
             this.showExportModal('无法打开新窗口，可能是被浏览器阻止。请长按下方图片保存：', imgData);
         }
     }
+
+    // 判断是否为移动设备
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // 为移动设备设置触摸支持
+    setupMobileTouchSupport() {
+        const container = document.querySelector('.canvas-container');
+        const canvas = this.canvas;
+        const touchHint = document.querySelector('.canvas-touch-hint');
+        
+        // 初始化触摸参数
+        let initialScale = 1;
+        let currentScale = 1;
+        let lastScale = 1;
+        let startX = 0;
+        let startY = 0;
+        let lastX = 0;
+        let lastY = 0;
+        let translateX = 0;
+        let translateY = 0;
+        
+        // 初始显示触摸提示，3秒后自动隐藏
+        if (touchHint) {
+            touchHint.classList.add('active');
+            setTimeout(() => {
+                touchHint.classList.remove('active');
+            }, 3000);
+        }
+        
+        // 监听屏幕方向变化，重新适配Canvas
+        window.addEventListener('orientationchange', () => {
+            // 延迟执行，等待浏览器完成方向变化
+            setTimeout(() => {
+                // 重置所有变换参数
+                translateX = 0;
+                translateY = 0;
+                currentScale = 1;
+                initialScale = 1;
+                
+                // 重新初始化Canvas
+                this.initializeCanvas();
+                
+                // 显示短暂提示
+                if (touchHint) {
+                    touchHint.classList.add('active');
+                    setTimeout(() => {
+                        touchHint.classList.remove('active');
+                    }, 1500);
+                }
+            }, 300);
+        });
+        
+        // 防止iOS Safari的橡皮筋效果
+        container.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 1) {
+                e.preventDefault(); // 防止多指缩放时的页面缩放
+            }
+        }, { passive: false });
+        
+        // 处理触摸开始事件
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            
+            if (e.touches.length === 1) {
+                // 单指触摸，准备拖动
+                container.classList.add('panning');
+                container.classList.remove('zooming');
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                lastX = translateX || 0;
+                lastY = translateY || 0;
+            } else if (e.touches.length === 2) {
+                // 双指触摸，准备缩放
+                container.classList.add('zooming');
+                container.classList.remove('panning');
+                initialScale = currentScale;
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                lastScale = dist;
+            }
+        });
+        
+        // 处理触摸移动事件
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            
+            if (e.touches.length === 1) {
+                // 单指拖动
+                const x = e.touches[0].clientX;
+                const y = e.touches[0].clientY;
+                translateX = lastX + (x - startX);
+                translateY = lastY + (y - startY);
+                
+                // 限制拖动范围，不允许Canvas完全拖出可视区域
+                const canvasRect = canvas.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                
+                // 计算最大允许的拖动距离
+                const displayMode = document.getElementById('display-mode').value;
+                let maxTranslateX, maxTranslateY;
+                
+                if (displayMode === 'original') {
+                    // 原始模式下，允许更大范围拖动
+                    maxTranslateX = Math.max(canvasRect.width, containerRect.width) / 2;
+                    maxTranslateY = Math.max(canvasRect.height, containerRect.height) / 2;
+                } else {
+                    // 其他模式下，限制拖动范围
+                    maxTranslateX = (canvasRect.width / 2) + (containerRect.width / 2) - 20;
+                    maxTranslateY = (canvasRect.height / 2) + (containerRect.height / 2) - 20;
+                }
+                
+                // 限制拖动范围
+                translateX = Math.max(-maxTranslateX, Math.min(translateX, maxTranslateX));
+                translateY = Math.max(-maxTranslateY, Math.min(translateY, maxTranslateY));
+                
+                // 应用变换
+                canvas.style.transform = `translate(-50%, -50%) translate3d(${translateX}px, ${translateY}px, 0) scale(${currentScale})`;
+            } else if (e.touches.length === 2) {
+                // 双指缩放
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                
+                // 计算新的缩放比例
+                currentScale = initialScale * (dist / lastScale);
+                
+                // 获取基础缩放比例和高质量渲染设置
+                const baseScale = this.currentScaleFactor || 1;
+                const useHighDPI = document.getElementById('high-quality').checked;
+                
+                // 限制缩放范围，如果启用高质量渲染，允许更大范围的缩放
+                const minScale = useHighDPI ? baseScale * 0.3 : baseScale * 0.5;  // 高质量模式下可以缩小更多
+                const maxScale = baseScale * 3;    // 允许放大到3倍
+                
+                currentScale = Math.max(minScale, Math.min(currentScale, maxScale));
+                
+                // 更新缩放信息显示
+                const scaleInfo = document.getElementById('zoom-value');
+                if (scaleInfo) {
+                    scaleInfo.textContent = `${currentScale.toFixed(2)}x (拖动中)`;
+                }
+                
+                // 应用变换
+                canvas.style.transform = `translate(-50%, -50%) translate3d(${translateX}px, ${translateY}px, 0) scale(${currentScale})`;
+            }
+        });
+        
+        // 处理触摸结束事件
+        canvas.addEventListener('touchend', (e) => {
+            if (e.touches.length === 0) {
+                // 所有手指都离开了屏幕
+                container.classList.remove('panning');
+                container.classList.remove('zooming');
+                lastX = translateX;
+                lastY = translateY;
+                
+                // 更新缩放信息显示
+                const displayMode = document.getElementById('display-mode').value;
+                const displayModeText = displayMode === 'auto' ? '自适应' : 
+                                       displayMode === 'original' ? '原始' : 
+                                       displayMode === 'fit-width' ? '适宽' : '适高';
+                
+                const scaleInfo = document.getElementById('zoom-value');
+                if (scaleInfo) {
+                    scaleInfo.textContent = `${currentScale.toFixed(2)}x (${displayModeText}+手势)`;
+                }
+            } else if (e.touches.length === 1) {
+                // 一个手指离开，一个手指仍在屏幕上
+                container.classList.add('panning');
+                container.classList.remove('zooming');
+                initialScale = currentScale;
+            }
+        });
+        
+        // 双击重置变换
+        canvas.addEventListener('dblclick', () => {
+            translateX = 0;
+            translateY = 0;
+            currentScale = 1;
+            initialScale = 1;
+            
+            // 重置为自适应状态
+            this.initializeCanvas();
+            
+            container.classList.remove('panning');
+            container.classList.remove('zooming');
+            
+            // 短暂显示触摸提示
+            if (touchHint) {
+                touchHint.classList.add('active');
+                setTimeout(() => {
+                    touchHint.classList.remove('active');
+                }, 1500);
+            }
+        });
+        
+        // 监听窗口大小变化
+        let lastWindowWidth = window.innerWidth;
+        let lastWindowHeight = window.innerHeight;
+        
+        // 使用定时器监测屏幕尺寸变化
+        setInterval(() => {
+            const currentWidth = window.innerWidth;
+            const currentHeight = window.innerHeight;
+            
+            if (lastWindowWidth !== currentWidth || lastWindowHeight !== currentHeight) {
+                // 屏幕尺寸变化，重新适配Canvas
+                lastWindowWidth = currentWidth;
+                lastWindowHeight = currentHeight;
+                
+                // 重置变换参数
+                translateX = 0;
+                translateY = 0;
+                currentScale = 1;
+                initialScale = 1;
+                
+                // 重新初始化画布
+                this.initializeCanvas();
+                
+                container.classList.remove('panning');
+                container.classList.remove('zooming');
+            }
+        }, 300);
+    }
 }
 
 // 初始化应用
 window.addEventListener('DOMContentLoaded', () => {
     // 主应用初始化
-    new LineGenerator();
+    const lineGenerator = new LineGenerator();
+    
+    // 在页面加载后立即执行一次初始化，确保正确计算尺寸
+    setTimeout(() => {
+        lineGenerator.initializeCanvas();
+    }, 100);
     
     // 移动端菜单控制
     initializeMobileMenu();
@@ -911,6 +1358,23 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('modal-close-btn').addEventListener('click', () => {
         document.getElementById('export-modal').classList.remove('active');
     });
+    
+    // Safari和iOS兼容性处理
+    if (/iPhone|iPad|iPod|Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)) {
+        // 解决Safari的渲染问题
+        const canvas = document.getElementById('main-canvas');
+        
+        // 强制重新计算
+        function forceReflow() {
+            canvas.style.display = 'none';
+            canvas.offsetHeight; // 触发重排
+            canvas.style.display = '';
+        }
+        
+        // 在方向变化和尺寸变化时应用
+        window.addEventListener('orientationchange', forceReflow);
+        window.addEventListener('resize', forceReflow);
+    }
 });
 
 // 移动端菜单初始化

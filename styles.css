@@ -394,6 +394,74 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    min-height: 200px;
+    background-color: var(--background-color);
+}
+
+/* 触摸交互提示 */
+.canvas-touch-hint {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.scale-info {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.canvas-touch-hint.active {
+    opacity: 1;
+}
+
+.canvas-container.panning .canvas-touch-hint,
+.canvas-container.zooming .canvas-touch-hint {
+    opacity: 1;
+}
+
+.canvas-container.panning::after {
+    content: '拖动模式';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    z-index: 100;
+}
+
+.canvas-container.zooming::after {
+    content: '缩放模式';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    z-index: 100;
 }
 
 #main-canvas {
@@ -402,9 +470,14 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: #ffffff;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
+    image-rendering: -webkit-optimize-contrast;  /* Chrome/Safari */
+    image-rendering: crisp-edges;                /* Firefox */
+    image-rendering: pixelated;                  /* Modern browsers */
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    max-width: 100%;
+    max-height: 100%;
+    transform-origin: center center;
+    will-change: transform;
 }
 
 /* 状态栏样式 */
@@ -560,6 +633,19 @@ body {
         height: 100%;
         border-radius: 12px;
         margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .canvas-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        min-height: 50vh;
+        padding: 0;
+        margin: 0;
     }
     
     .overlay {
@@ -586,6 +672,20 @@ body {
         min-height: var(--mobile-footer-height);
         padding-bottom: max(var(--safe-area-inset-bottom), 8px);
         padding-top: 8px;
+    }
+
+    @media (orientation: landscape) {
+        .container {
+            padding: 10px;
+        }
+        
+        .preview-area {
+            margin-top: 5px;
+        }
+        
+        .canvas-container {
+            min-height: 60vh;
+        }
     }
 }
 
@@ -882,4 +982,12 @@ select:focus, .width-select:focus {
     #export-image-container img {
         max-width: calc(100% + 10px);
     }
+}
+
+.tip-text {
+    font-size: 0.8em;
+    color: #757575;
+    margin-top: 4px;
+    margin-left: 28px;
+    line-height: 1.3;
 } 

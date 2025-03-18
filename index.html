@@ -79,9 +79,20 @@
             <input type="number" id="height" value="500" min="100" max="4000">
           </div>
           <div class="control-group">
-            <label>缩放:</label>
-            <input type="range" id="zoom" min="0.5" max="3" step="0.1" value="1">
-            <span id="zoom-value">1x</span>
+            <label>显示模式:</label>
+            <select id="display-mode">
+              <option value="auto" selected>自动适应容器</option>
+              <option value="original">原始尺寸 (1:1)</option>
+              <option value="fit-width">适应宽度</option>
+              <option value="fit-height">适应高度</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>
+              <input type="checkbox" id="high-quality" checked>
+              高质量缩放（防止模糊）
+            </label>
+            <div class="tip-text">启用时保持原始分辨率，可能影响性能</div>
           </div>
         </div>
 
@@ -225,6 +236,8 @@
     <div class="preview-area">
       <div class="canvas-container">
         <canvas id="main-canvas"></canvas>
+        <div class="canvas-touch-hint">双指缩放 · 单指拖动 · 双击重置<br>开启高质量模式可减少模糊</div>
+        <div class="scale-info" id="zoom-value">1x (自适应)</div>
       </div>
       <div class="status-bar">
         <span id="status-text">线条数: 8 / 画布尺寸: 500x500</span>
