@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>线迹幻境</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- 顶部状态栏 -->
+  <div class="top-bar">
+    <button class="menu-toggle" id="menu-toggle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+    <div class="top-bar-title">线迹幻境</div>
+  </div>
+
+  <!-- 遮罩层 -->
+  <div class="overlay" id="overlay"></div>
+
+  <div class="container">
+    <!-- 左侧控制面板 -->
+    <div class="control-panel" id="control-panel">
+      <div class="panel-header">
+        <div class="panel-title">线迹控制</div>
+        <button class="close-panel" id="close-panel">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="panel-sections-container">
+        <div class="panel-section">
+          <h3>尺寸控制</h3>
+          <div class="control-group">
+            <label>快捷尺寸:</label>
+            <div class="quick-size-buttons">
+              <button class="size-btn" data-width="500" data-height="500">500×500</button>
+              <button class="size-btn" data-width="800" data-height="800">800×800</button>
+              <button class="size-btn" data-width="1000" data-height="1000">1000×1000</button>
+              <button class="size-btn" data-width="1200" data-height="600">1200×600</button>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>宽度 (px):</label>
+            <input type="number" id="width" value="500" min="100" max="4000">
+          </div>
+          <div class="control-group">
+            <label>高度 (px):</label>
+            <input type="number" id="height" value="500" min="100" max="4000">
+          </div>
+          <div class="control-group">
+            <label>缩放:</label>
+            <input type="range" id="zoom" min="0.5" max="3" step="0.1" value="1">
+            <span id="zoom-value">1x</span>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>线迹参数</h3>
+          <div class="control-group">
+            <label>线迹数量:</label>
+            <div class="range-with-stepper">
+              <input type="range" id="line-count" min="1" max="500" value="8">
+              <div class="stepper">
+                <button class="stepper-btn" data-target="line-count" data-action="decrease">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+                <span id="line-count-value">8</span>
+                <button class="stepper-btn" data-target="line-count" data-action="increase">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>线迹模式:</label>
+            <div class="mode-selector">
+              <label>
+                <input type="radio" name="line-mode" id="mode-through" value="through">
+                贯穿模式
+              </label>
+              <label>
+                <input type="radio" name="line-mode" id="mode-random" value="random">
+                随机模式
+              </label>
+              <label>
+                <input type="radio" name="line-mode" id="mode-mixed" value="mixed" checked>
+                混合模式
+              </label>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>曲线强度:</label>
+            <div class="range-with-stepper">
+              <input type="range" id="curve-strength" min="0" max="100" value="0">
+              <div class="stepper">
+                <button class="stepper-btn" data-target="curve-strength" data-action="decrease">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+                <span id="curve-strength-value">0%</span>
+                <button class="stepper-btn" data-target="curve-strength" data-action="increase">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>线迹宽度:</label>
+            <div class="range-inputs">
+              <input type="number" id="min-width" value="5" min="0.5" max="20" step="0.5">
+              <span>至</span>
+              <input type="number" id="max-width" value="15" min="0.5" max="20" step="0.5">
+            </div>
+          </div>
+          <div class="control-group">
+            <label>端点样式:</label>
+            <div class="mode-selector">
+              <label>
+                <input type="radio" name="line-cap" id="cap-default" value="butt">
+                默认
+              </label>
+              <label>
+                <input type="radio" name="line-cap" id="cap-round" value="round">
+                圆角
+              </label>
+              <label>
+                <input type="radio" name="line-cap" id="cap-mixed" value="mixed" checked>
+                混合
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>背景控制</h3>
+          <div class="control-group">
+            <label>背景颜色:</label>
+            <div class="color-control">
+              <input type="color" id="bg-color" value="#ffffff">
+              <button id="reset-bg-color" class="reset-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                  <path d="M3 3v5h5"></path>
+                </svg>
+                重置
+              </button>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>透明度:</label>
+            <input type="range" id="bg-opacity" min="0" max="100" value="100">
+            <span id="bg-opacity-value">100%</span>
+          </div>
+          <div class="control-group">
+            <label>
+              <input type="checkbox" id="show-grid">
+              显示网格
+            </label>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>导出选项</h3>
+          <div class="control-group">
+            <label>分辨率:</label>
+            <select id="export-resolution">
+              <option value="1">1x</option>
+              <option value="2" selected>2x</option>
+              <option value="4">4x</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>格式:</label>
+            <select id="export-format">
+              <option value="png">PNG</option>
+              <option value="jpg">JPG</option>
+              <option value="svg">SVG</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧预览区 -->
+    <div class="preview-area">
+      <div class="canvas-container">
+        <canvas id="main-canvas"></canvas>
+      </div>
+      <div class="status-bar">
+        <span id="status-text">线条数: 8 / 画布尺寸: 500x500</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 固定在底部的操作按钮 -->
+  <div class="export-bar">
+    <button id="regenerate-btn" class="btn btn-secondary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+        <path d="M23 4v6h-6"></path>
+        <path d="M1 20v-6h6"></path>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+      </svg>
+      重绘线迹
+    </button>
+    <button id="export-btn" class="btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      导出图片
+    </button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
