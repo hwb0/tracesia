@@ -788,6 +788,18 @@ select:focus, .width-select:focus {
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .modal-content h3 {
@@ -818,6 +830,7 @@ select:focus, .width-select:focus {
 #export-image-container {
     text-align: center;
     margin: 20px 0;
+    position: relative;
 }
 
 #export-image-container img {
@@ -826,11 +839,47 @@ select:focus, .width-select:focus {
     border: 1px solid var(--border-color);
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    touch-action: pinch-zoom;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#export-image-container::after {
+    content: '长按图片保存';
+    display: block;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+#export-image-container a.btn {
+    margin: 10px auto;
+    display: inline-block;
 }
 
 @media (max-width: 768px) {
     .modal-content {
         padding: 18px;
         max-height: 85vh;
+    }
+    
+    .modal-buttons {
+        justify-content: center;
+    }
+    
+    #export-image-container {
+        margin: 15px -10px;
+    }
+    
+    #export-image-container img {
+        max-width: calc(100% + 10px);
     }
 } 

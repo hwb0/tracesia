@@ -329,116 +329,28 @@ class LineGenerator {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const filename = `线迹幻境_${timestamp}.${format}`;
         
+        // 检测设备类型 - 更精确的检测
+        const ua = navigator.userAgent.toLowerCase();
+        const isIOS = /iphone|ipad|ipod/.test(ua);
+        const isAndroid = /android/.test(ua);
+        const isMobile = isIOS || isAndroid || /mobile|phone/.test(ua);
+        const isWechat = /micromessenger/.test(ua);
+        const isQQ = /qq\//.test(ua);
+        
         try {
-            // 检测设备类型
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
             // 生成数据URL
-            const imgData = tempCanvas.toDataURL(`image/${format}`, format === 'jpg' ? 0.95 : undefined);
+            const imgData = tempCanvas.toDataURL(`image/${format}`, format === 'jpg' ? 0.9 : undefined);
             
-            // 使用不同的方法处理不同的设备
-            if (isIOS) {
-                // iOS设备特殊处理 - 在新窗口显示图片供用户长按保存
-                const newTab = window.open();
-                if (newTab) {
-                    newTab.document.write(`
-                        <html>
-                            <head>
-                                <title>保存图片</title>
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-                                <style>
-                                    body {
-                                        margin: 0;
-                                        padding: 20px;
-                                        display: flex;
-                                        flex-direction: column;
-                                        align-items: center;
-                                        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-                                        text-align: center;
-                                        background-color: #f7f7f7;
-                                        color: #333;
-                                    }
-                                    .container {
-                                        max-width: 100%;
-                                        width: 100%;
-                                        padding: 16px;
-                                        box-sizing: border-box;
-                                        display: flex;
-                                        flex-direction: column;
-                                        align-items: center;
-                                    }
-                                    img {
-                                        max-width: 100%;
-                                        height: auto;
-                                        border: 1px solid #eee;
-                                        margin-bottom: 20px;
-                                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                                        border-radius: 4px;
-                                        background-color: white;
-                                    }
-                                    h3 {
-                                        margin-bottom: 15px;
-                                        color: #2196f3;
-                                    }
-                                    p {
-                                        color: #666;
-                                        line-height: 1.5;
-                                        margin-bottom: 20px;
-                                    }
-                                    .tips {
-                                        background-color: #e3f2fd;
-                                        border-radius: 8px;
-                                        padding: 12px;
-                                        margin-bottom: 15px;
-                                        width: 100%;
-                                        box-sizing: border-box;
-                                        text-align: left;
-                                    }
-                                    .tips p {
-                                        margin: 5px 0;
-                                    }
-                                </style>
-                            </head>
-                            <body>
-                                <div class="container">
-                                    <h3>长按图片保存到相册</h3>
-                                    <div class="tips">
-                                        <p>• 点击并按住图片</p>
-                                        <p>• 选择"存储图像"或"添加到照片"</p>
-                                        <p>• 如果保存失败，请尝试截屏保存</p>
-                                    </div>
-                                    <img src="${imgData}" alt="${filename}">
-                                </div>
-                            </body>
-                        </html>
-                    `);
-                    newTab.document.close();
-                } else {
-                    // 如果无法打开新窗口，则显示模态框
-                    this.showExportModal('无法打开新窗口，请长按下方图片保存', imgData);
-                }
-            } else if (isMobile) {
-                // 其他移动设备 - 尝试使用a标签下载，如果失败则显示模态框
-                try {
-                    const link = document.createElement('a');
-                    link.href = imgData;
-                    link.download = filename;
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    setTimeout(() => {
-                        document.body.removeChild(link);
-                        
-                        // 提示用户检查下载
-                        setTimeout(() => {
-                            this.showExportModal('图片已准备下载，如果没有自动保存，请长按下方图片并选择"保存图片"', imgData);
-                        }, 1000);
-                    }, 100);
-                } catch (e) {
-                    // 回退到显示模态框
-                    this.showExportModal('自动下载失败，请长按下方图片保存', imgData);
-                }
+            // 针对不同环境使用不同的保存策略
+            if (isWechat || isQQ) {
+                // 微信/QQ内置浏览器中打开新页面显示图片
+                this.showImageInFullscreen(imgData, filename);
+            } else if (isIOS) {
+                // 在iOS上使用全屏显示方法
+                this.showImageInFullscreen(imgData, filename);
+            } else if (isAndroid) {
+                // 尝试直接下载，如果失败则显示图片
+                this.tryDownloadOrShow(imgData, filename);
             } else {
                 // 桌面设备 - 使用标准下载方式
                 const link = document.createElement('a');
@@ -448,31 +360,34 @@ class LineGenerator {
             }
         } catch (e) {
             console.error('导出图片失败:', e);
+            // 回退到模态框显示
+            this.showExportModal('生成图片失败，正在尝试备用方法...', null);
             
-            // 通用错误处理方式
-            this.showExportModal('导出图片失败，正在尝试备用方法...', null);
-            
-            // 备用方法：创建Blob对象
             try {
+                // 尝试使用blob方式
                 tempCanvas.toBlob((blob) => {
                     if (blob) {
+                        // 尝试使用Blob URL
                         const blobUrl = URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.download = filename;
-                        link.href = blobUrl;
-                        link.click();
                         
-                        // 更新模态框
-                        this.updateExportModal('图片已准备下载，请检查您的下载文件夹', null);
-                        
-                        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                        if (isMobile) {
+                            // 在移动设备上显示图片
+                            this.showImageInFullscreen(blobUrl, filename, true);
+                        } else {
+                            // 桌面设备 - 使用标准下载方式
+                            const link = document.createElement('a');
+                            link.download = filename;
+                            link.href = blobUrl;
+                            link.click();
+                            setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                        }
                     } else {
                         this.updateExportModal('图片生成失败，请尝试降低分辨率或使用其他浏览器', null);
                     }
-                }, `image/${format}`, format === 'jpg' ? 0.95 : undefined);
+                }, `image/${format}`, format === 'jpg' ? 0.9 : undefined);
             } catch (e2) {
                 console.error('备用导出方法失败:', e2);
-                this.updateExportModal('图片导出失败，请尝试以下方法：<br>1. 降低分辨率<br>2. 使用其他浏览器<br>3. 截取屏幕保存', null);
+                this.updateExportModal('无法处理图片，请尝试截屏保存或使用其他浏览器', null);
             }
         }
     }
@@ -513,7 +428,51 @@ class LineGenerator {
             const img = document.createElement('img');
             img.src = imgData;
             img.alt = '导出图片';
+            
+            // 添加图片点击提示
+            img.addEventListener('click', (e) => {
+                e.preventDefault();
+                // 创建提示元素
+                const toast = document.createElement('div');
+                toast.textContent = '请长按图片并选择"保存图片"选项';
+                toast.style.position = 'fixed';
+                toast.style.bottom = '20%';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%)';
+                toast.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                toast.style.color = 'white';
+                toast.style.padding = '10px 20px';
+                toast.style.borderRadius = '20px';
+                toast.style.fontSize = '14px';
+                toast.style.zIndex = '3000';
+                document.body.appendChild(toast);
+                
+                // 3秒后移除提示
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 3000);
+            });
+            
             imageContainer.appendChild(img);
+            
+            // 添加备用按钮，对于某些设备可能更容易保存
+            const btnContainer = document.createElement('div');
+            btnContainer.style.marginTop = '15px';
+            btnContainer.style.display = 'flex';
+            btnContainer.style.justifyContent = 'center';
+            btnContainer.style.gap = '10px';
+            
+            // 打开新窗口按钮
+            const openBtn = document.createElement('button');
+            openBtn.textContent = '在新窗口打开';
+            openBtn.className = 'btn btn-secondary';
+            openBtn.style.fontSize = '0.9em';
+            openBtn.addEventListener('click', () => {
+                this.showImageInFullscreen(imgData, 'export_image');
+            });
+            btnContainer.appendChild(openBtn);
+            
+            imageContainer.appendChild(btnContainer);
         }
         
         // 显示模态框
@@ -662,6 +621,280 @@ class LineGenerator {
         } catch (e) {
             console.error('SVG导出失败:', e);
             this.showExportModal('SVG导出失败，请尝试使用PNG或JPG格式', null);
+        }
+    }
+
+    // 尝试下载，如果失败则显示
+    tryDownloadOrShow(imgData, filename) {
+        try {
+            // 尝试使用a标签下载
+            const link = document.createElement('a');
+            link.href = imgData;
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            
+            // 模拟点击事件
+            const event = document.createEvent('MouseEvents');
+            event.initEvent('click', true, false);
+            link.dispatchEvent(event);
+            
+            setTimeout(() => {
+                document.body.removeChild(link);
+                
+                // 显示提示和备用选项
+                this.showExportModal('图片已准备下载，如未自动保存，请长按图片手动保存', imgData);
+            }, 100);
+        } catch (e) {
+            console.error('下载尝试失败:', e);
+            // 回退到直接显示
+            this.showImageInFullscreen(imgData, filename);
+        }
+    }
+
+    // 在全屏页面中显示图片
+    showImageInFullscreen(imgData, filename, isBlob = false) {
+        // 使用全屏页显示图片
+        const pageCode = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                <meta name="format-detection" content="telephone=no">
+                <meta name="msapplication-tap-highlight" content="no">
+                <meta name="apple-mobile-web-app-capable" content="yes">
+                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+                <title>保存图片</title>
+                <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    
+                    html, body {
+                        height: 100%;
+                        width: 100%;
+                        background-color: #1a1a1a;
+                        color: #fff;
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                        overflow: hidden;
+                        position: fixed;
+                        touch-action: manipulation;
+                    }
+                    
+                    .container {
+                        display: flex;
+                        flex-direction: column;
+                        height: 100%;
+                        padding: 20px;
+                        text-align: center;
+                    }
+                    
+                    .header {
+                        padding: 15px 0;
+                        margin-bottom: 10px;
+                    }
+                    
+                    h1 {
+                        font-size: 20px;
+                        font-weight: 600;
+                        margin-bottom: 10px;
+                        color: #2196f3;
+                    }
+                    
+                    .tips {
+                        background-color: rgba(33, 150, 243, 0.15);
+                        border-radius: 12px;
+                        padding: 15px;
+                        margin-bottom: 20px;
+                        line-height: 1.5;
+                        text-align: left;
+                        font-size: 14px;
+                    }
+                    
+                    .tips li {
+                        margin-bottom: 8px;
+                        list-style-position: inside;
+                    }
+                    
+                    .img-container {
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        position: relative;
+                        overflow: auto;
+                        -webkit-overflow-scrolling: touch;
+                        margin-bottom: 15px;
+                    }
+                    
+                    .img-container img {
+                        max-width: 100%;
+                        max-height: 100%;
+                        object-fit: contain;
+                        user-select: none;
+                        -webkit-user-drag: none;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                        background-color: #fff;
+                        border-radius: 4px;
+                    }
+                    
+                    .footer {
+                        padding: 10px 0;
+                        font-size: 13px;
+                        color: #aaa;
+                    }
+                    
+                    .touch-hint {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background-color: rgba(0, 0, 0, 0.7);
+                        color: white;
+                        padding: 15px 25px;
+                        border-radius: 30px;
+                        font-size: 16px;
+                        pointer-events: none;
+                        opacity: 0;
+                        transition: opacity 0.3s;
+                    }
+                    
+                    .touch-hint.show {
+                        opacity: 1;
+                        animation: pulse 2s infinite;
+                    }
+                    
+                    @keyframes pulse {
+                        0% { transform: translate(-50%, -50%) scale(1); }
+                        50% { transform: translate(-50%, -50%) scale(1.05); }
+                        100% { transform: translate(-50%, -50%) scale(1); }
+                    }
+                    
+                    .actions {
+                        display: flex;
+                        justify-content: center;
+                        gap: 10px;
+                        margin-bottom: 20px;
+                    }
+                    
+                    .btn {
+                        background-color: #2196f3;
+                        color: white;
+                        border: none;
+                        padding: 10px 16px;
+                        border-radius: 20px;
+                        font-size: 14px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: background-color 0.2s;
+                    }
+                    
+                    .btn:active {
+                        background-color: #1976d2;
+                        transform: scale(0.98);
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>图片预览</h1>
+                        <div class="tips">
+                            <ul>
+                                <li><strong>长按图片</strong>选择"存储图像"或"添加到照片"</li>
+                                <li>如果长按无效，请尝试<strong>截屏</strong>保存</li>
+                                <li>某些浏览器可能需要点击图片后再保存</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn" id="fullscreen-btn">全屏查看</button>
+                        <button class="btn" id="hint-btn">显示提示</button>
+                    </div>
+                    <div class="img-container">
+                        <img src="${imgData}" alt="预览图片" id="preview-img">
+                        <div class="touch-hint" id="touch-hint">长按图片保存</div>
+                    </div>
+                    <div class="footer">
+                        线迹幻境 - 长按图片保存 - ${new Date().toLocaleString()}
+                    </div>
+                </div>
+                <script>
+                    // 检测图片加载状态
+                    document.getElementById('preview-img').onload = function() {
+                        console.log('图片加载成功');
+                    };
+                    
+                    document.getElementById('preview-img').onerror = function() {
+                        console.error('图片加载失败');
+                        alert('图片加载失败，请返回重试');
+                    };
+                    
+                    // 添加图片点击事件，某些移动浏览器需要先点击才能保存
+                    document.getElementById('preview-img').addEventListener('click', function(e) {
+                        const hint = document.getElementById('touch-hint');
+                        hint.classList.add('show');
+                        setTimeout(() => {
+                            hint.classList.remove('show');
+                        }, 3000);
+                    });
+                    
+                    // 全屏查看按钮
+                    document.getElementById('fullscreen-btn').addEventListener('click', function() {
+                        if (document.documentElement.requestFullscreen) {
+                            document.documentElement.requestFullscreen();
+                        } else if (document.documentElement.webkitRequestFullscreen) {
+                            document.documentElement.webkitRequestFullscreen();
+                        } else if (document.documentElement.msRequestFullscreen) {
+                            document.documentElement.msRequestFullscreen();
+                        }
+                    });
+                    
+                    // 显示提示按钮
+                    document.getElementById('hint-btn').addEventListener('click', function() {
+                        const hint = document.getElementById('touch-hint');
+                        hint.classList.add('show');
+                        setTimeout(() => {
+                            hint.classList.remove('show');
+                        }, 3000);
+                    });
+                    
+                    // 检测是否为iOS设备
+                    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    
+                    // 对iOS设备特别提示
+                    if (isIOS) {
+                        setTimeout(() => {
+                            const hint = document.getElementById('touch-hint');
+                            hint.classList.add('show');
+                            setTimeout(() => {
+                                hint.classList.remove('show');
+                            }, 3000);
+                        }, 1000);
+                    }
+                </script>
+            </body>
+            </html>
+        `;
+
+        // 打开新窗口显示图片
+        const newWindow = window.open();
+        if (newWindow) {
+            newWindow.document.write(pageCode);
+            newWindow.document.close();
+            
+            // 如果是blob URL，添加释放资源
+            if (isBlob) {
+                newWindow.onbeforeunload = function() {
+                    URL.revokeObjectURL(imgData);
+                };
+            }
+        } else {
+            // 如果无法打开新窗口，则使用模态框
+            this.showExportModal('无法打开新窗口，可能是被浏览器阻止。请长按下方图片保存：', imgData);
         }
     }
 }
