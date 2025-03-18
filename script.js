@@ -147,124 +147,191 @@ class LineGenerator {
     }
 
     setupEventListeners() {
-        // 尺寸控制
+        // 事件委托
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            
+            // 快捷尺寸按钮
+            if (target.closest('.size-btn')) {
+                const sizeBtn = target.closest('.size-btn');
+                const size = sizeBtn.getAttribute('data-size');
+                document.getElementById('width').value = size;
+                document.getElementById('height').value = size;
+                this.initializeCanvas();
+            }
+            
+            // 重绘按钮
+            if (target.closest('#regenerate-btn')) {
+                this.generateLine();
+                this.draw();
+            }
+            
+            // 导出按钮
+            if (target.closest('#export-btn')) {
+                this.exportImage();
+            }
+            
+            // 模态框关闭按钮
+            if (target.closest('#modal-close-btn')) {
+                document.getElementById('export-modal').classList.remove('active');
+            }
+        });
+        
+        // 宽度和高度输入框
         document.getElementById('width').addEventListener('change', () => this.initializeCanvas());
         document.getElementById('height').addEventListener('change', () => this.initializeCanvas());
+        
+        // 显示模式和高质量选择
         document.getElementById('display-mode').addEventListener('change', () => this.initializeCanvas());
         document.getElementById('high-quality').addEventListener('change', () => this.initializeCanvas());
-
-        // 窗口大小变化时重新计算Canvas尺寸
-        window.addEventListener('resize', () => {
-            // 使用节流函数避免频繁触发
-            clearTimeout(this.resizeTimeout);
-            this.resizeTimeout = setTimeout(() => {
-                this.initializeCanvas();
-            }, 100);
-        });
-
-        // 设备方向变化时重新计算Canvas尺寸（移动设备专用）
-        window.addEventListener('orientationchange', () => {
-            // 方向变化后需要稍微延迟，等DOM更新完成
-            setTimeout(() => {
-                this.initializeCanvas();
-            }, 300);
-        });
-
-        // 快捷尺寸按钮
-        document.querySelectorAll('.size-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const width = btn.dataset.width;
-                const height = btn.dataset.height;
-                
-                // 更新输入框的值
+        
+        // 快捷尺寸选择器
+        document.getElementById('quick-size-selector').addEventListener('change', (e) => {
+            const value = e.target.value;
+            if (value !== 'custom') {
+                const [width, height] = value.split('x');
                 document.getElementById('width').value = width;
                 document.getElementById('height').value = height;
-                
-                // 重新初始化画布
                 this.initializeCanvas();
-            });
+            }
         });
-
-        // 步进器按钮
-        document.querySelectorAll('.stepper-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetId = btn.dataset.target;
-                const action = btn.dataset.action;
-                const inputElement = document.getElementById(targetId);
-                
-                // 根据操作增加或减少值
-                let value = parseFloat(inputElement.value);
-                const step = parseFloat(inputElement.step) || 1;
-                
-                if (action === 'increase') {
-                    value = Math.min(value + step, parseFloat(inputElement.max));
-                } else {
-                    value = Math.max(value - step, parseFloat(inputElement.min));
-                }
-                
-                // 更新值并触发change事件
-                inputElement.value = value;
-                
-                // 更新显示
-                const displayElement = document.getElementById(`${targetId}-value`);
-                if (displayElement) {
-                    if (targetId === 'curve-strength') {
-                        displayElement.textContent = `${value}%`;
-                    } else {
-                        displayElement.textContent = value;
-                    }
-                }
-                
-                // 触发重绘
+        
+        // 快捷曲线选择器
+        document.getElementById('quick-curve-selector').addEventListener('change', (e) => {
+            const value = e.target.value;
+            if (value !== 'custom') {
+                document.getElementById('curve-strength').value = value;
+                document.getElementById('curve-strength-value').textContent = `${value}%`;
                 this.draw();
-            });
+            }
         });
-
-        // 线条参数
+        
+        // 线条数量滑块
         document.getElementById('line-count').addEventListener('input', (e) => {
             document.getElementById('line-count-value').textContent = e.target.value;
             this.draw();
         });
-
+        
+        // 曲线强度滑块
         document.getElementById('curve-strength').addEventListener('input', (e) => {
             document.getElementById('curve-strength-value').textContent = `${e.target.value}%`;
             this.draw();
         });
-
-        // 线条模式切换
-        document.querySelectorAll('input[name="line-mode"]').forEach(radio => {
-            radio.addEventListener('change', () => this.draw());
-        });
-
-        // 线条宽度变化监听
-        document.getElementById('min-width').addEventListener('change', () => this.draw());
-        document.getElementById('max-width').addEventListener('change', () => this.draw());
-
-        // 背景控制
-        document.getElementById('bg-color').addEventListener('input', () => this.draw());
+        
+        // 背景透明度滑块
         document.getElementById('bg-opacity').addEventListener('input', (e) => {
             document.getElementById('bg-opacity-value').textContent = `${e.target.value}%`;
             this.draw();
         });
-
-        // 背景颜色重置
-        document.getElementById('reset-bg-color').addEventListener('click', () => {
-            document.getElementById('bg-color').value = '#ffffff';
-            this.draw();
+        
+        // 线条模式单选框
+        document.querySelectorAll('input[name="line-mode"]').forEach(radio => {
+            radio.addEventListener('change', () => this.draw());
         });
-
-        // 网格显示切换
-        document.getElementById('show-grid').addEventListener('change', () => this.draw());
-
-        // 重新生成按钮
-        document.getElementById('regenerate-btn').addEventListener('click', () => this.draw());
-
-        // 导出按钮
-        document.getElementById('export-btn').addEventListener('click', () => this.exportImage());
-
-        // 线条端点样式切换
+        
+        // 端点样式单选框
         document.querySelectorAll('input[name="line-cap"]').forEach(radio => {
             radio.addEventListener('change', () => this.draw());
+        });
+        
+        // 颜色模式单选框
+        document.querySelectorAll('input[name="color-mode"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                // 更新提示文本
+                const colorTip = document.getElementById('color-tip');
+                if (colorTip) {
+                    switch(radio.value) {
+                        case 'theme':
+                            colorTip.textContent = '使用三种主题色系随机生成线条';
+                            break;
+                        case 'black':
+                            colorTip.textContent = '使用统一的黑色线条';
+                            break;
+                        case 'random':
+                        default:
+                            colorTip.textContent = '使用完全随机的彩色生成线条';
+                            break;
+                    }
+                }
+                // 重绘
+                this.draw();
+            });
+        });
+        
+        // 线条宽度输入框
+        document.getElementById('min-width').addEventListener('change', () => this.draw());
+        document.getElementById('max-width').addEventListener('change', () => this.draw());
+        
+        // 背景颜色输入框
+        document.getElementById('bg-color').addEventListener('change', () => this.draw());
+        document.getElementById('reset-bg-color').addEventListener('click', () => {
+            document.getElementById('bg-color').value = '#ffffff';
+            document.getElementById('bg-opacity').value = 100;
+            document.getElementById('bg-opacity-value').textContent = '100%';
+            this.draw();
+        });
+        
+        // 显示网格复选框
+        document.getElementById('show-grid').addEventListener('change', () => this.draw());
+        
+        // 增减按钮的事件处理
+        document.querySelectorAll('.stepper-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.getAttribute('data-action');
+                const target = btn.getAttribute('data-target');
+                const input = document.getElementById(target);
+                const step = parseFloat(input.step || 1);
+                const min = parseFloat(input.min);
+                const max = parseFloat(input.max);
+                let value = parseFloat(input.value);
+                
+                if (action === 'increase') {
+                    value = Math.min(max, value + step);
+                } else {
+                    value = Math.max(min, value - step);
+                }
+                
+                input.value = value;
+                
+                // 更新显示值
+                if (target === 'line-count') {
+                    document.getElementById('line-count-value').textContent = value;
+                } else if (target === 'curve-strength') {
+                    document.getElementById('curve-strength-value').textContent = `${value}%`;
+                    document.getElementById('quick-curve-selector').value = 'custom';
+                }
+                
+                // 触发更新
+                const event = new Event('input');
+                input.dispatchEvent(event);
+                
+                // 特殊处理：如果是宽度或高度，需要重新初始化画布
+                if (target === 'width' || target === 'height') {
+                    this.initializeCanvas();
+                } else {
+                    this.draw();
+                }
+            });
+        });
+        
+        // 导出选项更改
+        document.getElementById('export-resolution').addEventListener('change', () => {
+            this.updateStatusbar();
+        });
+        
+        // 监听窗口尺寸改变事件
+        window.addEventListener('resize', () => {
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = setTimeout(() => {
+                this.initializeCanvas();
+            }, 250);
+        });
+        
+        // 监听设备方向改变事件
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                this.initializeCanvas();
+            }, 300);
         });
     }
 
@@ -352,70 +419,236 @@ class LineGenerator {
             y: startY + (endY - startY) * 0.75 + (Math.random() - 0.5) * this.height * curveStrength
         };
 
+        // 获取当前选择的颜色模式并生成颜色
+        let colorMode = '';
+        document.querySelectorAll('input[name="color-mode"]').forEach(radio => {
+            if (radio.checked) {
+                colorMode = radio.value;
+            }
+        });
+        
+        let color;
+        switch(colorMode) {
+            case 'theme':
+                // 主题配色 - 三种预设颜色之一
+                const themes = [
+                    // 蓝色系
+                    { hue: 200 + Math.floor(Math.random() * 40), saturation: 70 + Math.floor(Math.random() * 20), lightness: 45 + Math.floor(Math.random() * 15) },
+                    // 绿色系
+                    { hue: 100 + Math.floor(Math.random() * 40), saturation: 70 + Math.floor(Math.random() * 20), lightness: 40 + Math.floor(Math.random() * 15) },
+                    // 紫红色系
+                    { hue: 280 + Math.floor(Math.random() * 40), saturation: 70 + Math.floor(Math.random() * 20), lightness: 45 + Math.floor(Math.random() * 15) }
+                ];
+                const theme = themes[Math.floor(Math.random() * themes.length)];
+                color = `hsl(${theme.hue}, ${theme.saturation}%, ${theme.lightness}%)`;
+                break;
+                
+            case 'black':
+                // 纯黑色
+                color = '#000000';
+                break;
+                
+            case 'random':
+            default:
+                // 完全随机（默认行为）
+                const hue = Math.floor(Math.random() * 360);
+                const saturation = 80 + Math.floor(Math.random() * 20);
+                const lightness = 40 + Math.floor(Math.random() * 30);
+                color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                break;
+        }
+
         return {
             start: { x: startX, y: startY },
             end: { x: endX, y: endY },
             control1: controlPoint1,
             control2: controlPoint2,
             width: width,
-            cap: lineCap
+            cap: lineCap,
+            color: color
         };
     }
 
     draw() {
-        // 清空画布
+        // 清除画布
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // 检查是否处于高质量模式
-        const useHighDPI = document.getElementById('high-quality').checked;
-        const scaleFactor = this.currentScaleFactor || 1;
         
-        // 如果在高质量模式下且缩放比例小于1，需要调整绘图上下文
-        if (useHighDPI && scaleFactor < 1) {
-            // 保存当前上下文状态
-            this.ctx.save();
-            
-            // 特殊处理：如果画布尺寸和原始尺寸不同，需要进行缩放调整
-            if (this.canvas.width !== this.width || this.canvas.height !== this.height) {
-                // 设置画布尺寸为原始尺寸以获得最高质量
-                this.canvas.width = this.width;
-                this.canvas.height = this.height;
-            }
-        }
-
-        // 绘制背景
+        // 获取背景颜色和透明度
         const bgColor = document.getElementById('bg-color').value;
-        const bgOpacity = document.getElementById('bg-opacity').value / 100;
-        this.ctx.fillStyle = `${bgColor}${Math.round(bgOpacity * 255).toString(16).padStart(2, '0')}`;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // 绘制网格
+        const opacity = document.getElementById('bg-opacity').value / 100;
+        
+        // 设置背景
+        if (opacity > 0) {
+            // 解析背景颜色
+            const r = parseInt(bgColor.slice(1, 3), 16);
+            const g = parseInt(bgColor.slice(3, 5), 16);
+            const b = parseInt(bgColor.slice(5, 7), 16);
+            
+            // 应用透明度
+            this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+        
+        // 如果启用网格，绘制网格
         if (document.getElementById('show-grid').checked) {
             this.drawGrid();
         }
-
-        // 绘制线条
+        
+        // 获取当前活动的线条模式
+        let lineMode = '';
+        document.querySelectorAll('input[name="line-mode"]').forEach(radio => {
+            if (radio.checked) {
+                lineMode = radio.value;
+            }
+        });
+        
+        // 获取当前活动的端点样式
+        let lineCap = '';
+        document.querySelectorAll('input[name="line-cap"]').forEach(radio => {
+            if (radio.checked) {
+                lineCap = radio.value;
+            }
+        });
+        
+        // 获取线条数量
         const lineCount = parseInt(document.getElementById('line-count').value);
+        
+        // 获取曲线强度
+        const curveStrength = parseFloat(document.getElementById('curve-strength').value) / 100;
+        
+        // 获取线条宽度范围
+        const minWidth = parseFloat(document.getElementById('min-width').value);
+        const maxWidth = parseFloat(document.getElementById('max-width').value);
+        
+        // 生成线条
+        const lines = [];
+        
         for (let i = 0; i < lineCount; i++) {
-            const line = this.generateLine();
-            this.drawLine(line);
+            // 基于模式随机位置
+            let startX, startY, endX, endY;
+            
+            if (lineMode === 'through' || (lineMode === 'mixed' && Math.random() < 0.5)) {
+                // 贯穿模式：从边缘到边缘
+                const edge1 = Math.floor(Math.random() * 4); // 0: 上, 1: 右, 2: 下, 3: 左
+                const edge2 = (edge1 + 2) % 4; // 对面的边
+                
+                [startX, startY] = this.getRandomPointOnEdge(edge1);
+                [endX, endY] = this.getRandomPointOnEdge(edge2);
+            } else {
+                // 随机模式：任意两点
+                startX = Math.random() * this.canvas.width;
+                startY = Math.random() * this.canvas.height;
+                endX = Math.random() * this.canvas.width;
+                endY = Math.random() * this.canvas.height;
+            }
+            
+            // 随机线条颜色
+            let color;
+            // 获取当前选择的颜色模式
+            let colorMode = '';
+            document.querySelectorAll('input[name="color-mode"]').forEach(radio => {
+                if (radio.checked) {
+                    colorMode = radio.value;
+                }
+            });
+            
+            switch(colorMode) {
+                case 'theme':
+                    // 主题配色 - 三种预设颜色之一
+                    const themes = [
+                        // 蓝色系
+                        { hue: 200 + Math.floor(Math.random() * 40), saturation: 70 + Math.floor(Math.random() * 20), lightness: 45 + Math.floor(Math.random() * 15) },
+                        // 绿色系
+                        { hue: 100 + Math.floor(Math.random() * 40), saturation: 70 + Math.floor(Math.random() * 20), lightness: 40 + Math.floor(Math.random() * 15) },
+                        // 紫红色系
+                        { hue: 280 + Math.floor(Math.random() * 40), saturation: 70 + Math.floor(Math.random() * 20), lightness: 45 + Math.floor(Math.random() * 15) }
+                    ];
+                    const theme = themes[Math.floor(Math.random() * themes.length)];
+                    color = `hsl(${theme.hue}, ${theme.saturation}%, ${theme.lightness}%)`;
+                    break;
+                    
+                case 'black':
+                    // 纯黑色
+                    color = '#000000';
+                    break;
+                    
+                case 'random':
+                default:
+                    // 完全随机（默认行为）
+                    const hue = Math.floor(Math.random() * 360);
+                    const saturation = 80 + Math.floor(Math.random() * 20);
+                    const lightness = 40 + Math.floor(Math.random() * 30);
+                    color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                    break;
+            }
+            
+            // 随机线条宽度
+            const width = minWidth + Math.random() * (maxWidth - minWidth);
+            
+            // 随机端点样式
+            let cap = lineCap;
+            if (cap === 'mixed') {
+                cap = Math.random() < 0.5 ? 'butt' : 'round';
+            }
+            
+            // 创建控制点（用于贝塞尔曲线）
+            let controlPoints = [];
+            if (curveStrength > 0) {
+                const dx = endX - startX;
+                const dy = endY - startY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // 控制点数量与距离和曲线强度相关
+                const numPoints = Math.max(1, Math.floor(distance / 200) + 1);
+                
+                for (let j = 0; j < numPoints; j++) {
+                    const t = (j + 1) / (numPoints + 1);
+                    const pointX = startX + dx * t;
+                    const pointY = startY + dy * t;
+                    
+                    // 垂直于线段方向的偏移
+                    const perpX = -dy;
+                    const perpY = dx;
+                    
+                    // 归一化
+                    const perpLength = Math.sqrt(perpX * perpX + perpY * perpY);
+                    const perpNormX = perpX / perpLength;
+                    const perpNormY = perpY / perpLength;
+                    
+                    // 随机偏移量，受曲线强度影响
+                    const maxOffset = distance * 0.3 * curveStrength;
+                    const offset = (Math.random() * 2 - 1) * maxOffset;
+                    
+                    const ctrlX = pointX + perpNormX * offset;
+                    const ctrlY = pointY + perpNormY * offset;
+                    
+                    controlPoints.push({ x: ctrlX, y: ctrlY });
+                }
+            }
+            
+            // 创建线条对象
+            const line = {
+                start: { x: startX, y: startY },
+                end: { x: endX, y: endY },
+                color: color,
+                width: width,
+                cap: cap,
+                controlPoints: controlPoints
+            };
+            
+            lines.push(line);
         }
         
-        // 如果在高质量模式下且进行了上下文调整，恢复上下文
-        if (useHighDPI && scaleFactor < 1) {
-            this.ctx.restore();
-        }
-
-        // 获取显示模式
-        const displayMode = document.getElementById('display-mode').value;
-        const displayModeText = displayMode === 'auto' ? '自适应' : 
-                               displayMode === 'original' ? '原始尺寸' : 
-                               displayMode === 'fit-width' ? '适应宽度' : '适应高度';
+        // 绘制所有线条
+        lines.forEach(line => {
+            this.drawLine(line);
+        });
+        
+        // 保存线条数据到canvas实例，用于导出
+        this.canvas.__lines = lines;
         
         // 更新状态栏
-        const qualityText = useHighDPI ? " / 高质量渲染" : "";
-        document.getElementById('status-text').textContent = 
-            `线迹数: ${lineCount} / 画布尺寸: ${this.width}x${this.height} / 显示模式: ${displayModeText}${qualityText}`;
+        this.updateStatusbar();
     }
 
     drawLine(line) {
@@ -424,7 +657,7 @@ class LineGenerator {
         
         // 设置线条平滑相关属性
         this.ctx.lineWidth = line.width;
-        this.ctx.strokeStyle = '#000000';
+        this.ctx.strokeStyle = line.color;
         
         // 使用线条对象中的端点样式
         this.ctx.lineCap = line.cap || 'round'; // 默认使用圆形端点
@@ -439,24 +672,69 @@ class LineGenerator {
         // 像素精确对齐 - 使用0.5偏移避免模糊
         const offset = 0.5;
         
-        // 计算偏移后的坐标
-        const startX = Math.floor(line.start.x) + offset;
-        const startY = Math.floor(line.start.y) + offset;
-        const control1X = Math.floor(line.control1.x) + offset;
-        const control1Y = Math.floor(line.control1.y) + offset;
-        const control2X = Math.floor(line.control2.x) + offset;
-        const control2Y = Math.floor(line.control2.y) + offset;
-        const endX = Math.floor(line.end.x) + offset;
-        const endY = Math.floor(line.end.y) + offset;
-        
-        // 绘制贝塞尔曲线
+        // 开始绘制路径
         this.ctx.beginPath();
-        this.ctx.moveTo(startX, startY);
-        this.ctx.bezierCurveTo(
-            control1X, control1Y,
-            control2X, control2Y,
-            endX, endY
-        );
+        this.ctx.moveTo(Math.floor(line.start.x) + offset, Math.floor(line.start.y) + offset);
+        
+        // 判断线条对象的格式，适应不同类型的控制点结构
+        if (line.controlPoints && line.controlPoints.length > 0) {
+            // 使用controlPoints数组
+            if (line.controlPoints.length === 1) {
+                // 只有一个控制点，使用二次贝塞尔曲线
+                const cp = line.controlPoints[0];
+                this.ctx.quadraticCurveTo(
+                    Math.floor(cp.x) + offset, 
+                    Math.floor(cp.y) + offset,
+                    Math.floor(line.end.x) + offset, 
+                    Math.floor(line.end.y) + offset
+                );
+            } else {
+                // 多个控制点，使用多段贝塞尔曲线
+                let currentPoint = line.start;
+                
+                for (let i = 0; i < line.controlPoints.length; i++) {
+                    const cp = line.controlPoints[i];
+                    
+                    if (i === line.controlPoints.length - 1) {
+                        // 最后一个控制点连接到终点
+                        this.ctx.quadraticCurveTo(
+                            Math.floor(cp.x) + offset, 
+                            Math.floor(cp.y) + offset,
+                            Math.floor(line.end.x) + offset, 
+                            Math.floor(line.end.y) + offset
+                        );
+                    } else {
+                        // 中间控制点连接到下一个控制点的中点
+                        const nextCp = line.controlPoints[i + 1];
+                        const midX = (cp.x + nextCp.x) / 2;
+                        const midY = (cp.y + nextCp.y) / 2;
+                        
+                        this.ctx.quadraticCurveTo(
+                            Math.floor(cp.x) + offset, 
+                            Math.floor(cp.y) + offset,
+                            Math.floor(midX) + offset, 
+                            Math.floor(midY) + offset
+                        );
+                    }
+                }
+            }
+        } else if (line.control1 && line.control2) {
+            // 使用传统的control1和control2格式
+            this.ctx.bezierCurveTo(
+                Math.floor(line.control1.x) + offset, 
+                Math.floor(line.control1.y) + offset,
+                Math.floor(line.control2.x) + offset, 
+                Math.floor(line.control2.y) + offset,
+                Math.floor(line.end.x) + offset, 
+                Math.floor(line.end.y) + offset
+            );
+        } else {
+            // 没有控制点，绘制直线
+            this.ctx.lineTo(
+                Math.floor(line.end.x) + offset, 
+                Math.floor(line.end.y) + offset
+            );
+        }
         
         // 进行描边
         this.ctx.stroke();
@@ -507,117 +785,175 @@ class LineGenerator {
     }
 
     exportImage() {
-        const resolution = parseInt(document.getElementById('export-resolution').value);
+        // 获取导出格式和分辨率
         const format = document.getElementById('export-format').value;
+        const resolution = parseInt(document.getElementById('export-resolution').value);
         
-        // SVG格式特殊处理
+        // SVG格式单独处理
         if (format === 'svg') {
             this.exportSVG();
             return;
         }
         
-        // 创建临时画布用于导出
+        // 创建临时Canvas用于导出
         const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // 设置临时Canvas尺寸
         tempCanvas.width = this.width * resolution;
         tempCanvas.height = this.height * resolution;
-        const tempCtx = tempCanvas.getContext('2d');
-
-        // 设置背景
+        
+        // 获取背景颜色和透明度
         const bgColor = document.getElementById('bg-color').value;
-        const bgOpacity = document.getElementById('bg-opacity').value / 100;
-        tempCtx.fillStyle = `${bgColor}${Math.round(bgOpacity * 255).toString(16).padStart(2, '0')}`;
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-
-        // 重新绘制线条
-        const lineCount = parseInt(document.getElementById('line-count').value);
-        const lineSeed = Date.now(); // 使用时间戳作为随机种子，确保导出和预览一致
-        Math.seedrandom && Math.seedrandom(lineSeed);
+        const opacity = document.getElementById('bg-opacity').value / 100;
         
-        for (let i = 0; i < lineCount; i++) {
-            const line = this.generateLine();
-            this.drawLineOnCanvas(line, tempCtx, resolution);
+        // 设置背景
+        if (opacity > 0) {
+            // 解析背景颜色
+            const r = parseInt(bgColor.slice(1, 3), 16);
+            const g = parseInt(bgColor.slice(3, 5), 16);
+            const b = parseInt(bgColor.slice(5, 7), 16);
+            
+            // 填充背景
+            tempCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         }
-
-        // 导出图片
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const filename = `线迹幻境_${timestamp}.${format}`;
         
-        // 检测设备类型 - 更精确的检测
-        const ua = navigator.userAgent.toLowerCase();
-        const isIOS = /iphone|ipad|ipod/.test(ua);
-        const isAndroid = /android/.test(ua);
-        const isMobile = isIOS || isAndroid || /mobile|phone/.test(ua);
-        const isWechat = /micromessenger/.test(ua);
-        const isQQ = /qq\//.test(ua);
+        // 如果启用网格，绘制网格
+        if (document.getElementById('show-grid').checked) {
+            // 导出时网格尺寸需要按分辨率缩放
+            this.drawGrid(tempCtx, resolution);
+        }
+        
+        // 获取当前画布的所有线条数据
+        const lines = [];
+        
+        // 获取当前活动的线条模式（用于状态信息）
+        let lineMode = '';
+        document.querySelectorAll('input[name="line-mode"]').forEach(radio => {
+            if (radio.checked) {
+                lineMode = radio.value;
+            }
+        });
+        
+        // 获取线条数量
+        const lineCount = parseInt(document.getElementById('line-count').value);
+        
+        // 获取曲线强度
+        const curveStrength = parseFloat(document.getElementById('curve-strength').value) / 100;
+        
+        // 从主canvas重新绘制到临时canvas
+        // 通过缩放确保线条在高分辨率下正确渲染
+        if (this.canvas.__lines && this.canvas.__lines.length > 0) {
+            for (let i = 0; i < this.canvas.__lines.length; i++) {
+                const line = Object.assign({}, this.canvas.__lines[i]);
+                
+                // 缩放所有坐标
+                line.start.x *= resolution;
+                line.start.y *= resolution;
+                line.end.x *= resolution;
+                line.end.y *= resolution;
+                line.width *= resolution;
+                
+                // 缩放控制点
+                if (line.controlPoints && line.controlPoints.length > 0) {
+                    line.controlPoints = line.controlPoints.map(pt => ({
+                        x: pt.x * resolution,
+                        y: pt.y * resolution
+                    }));
+                }
+                
+                // 绘制线条
+                this.drawLineOnCanvas(line, tempCtx, resolution);
+            }
+        } else {
+            // 如果没有保存的线条数据，重新生成
+            for (let i = 0; i < lineCount; i++) {
+                const line = this.generateLine();
+                this.drawLineOnCanvas(line, tempCtx, resolution);
+            }
+        }
+        
+        // 根据格式导出
+        let mimeType = 'image/png';
+        let quality = 1;
+        
+        if (format === 'jpg') {
+            mimeType = 'image/jpeg';
+            quality = 0.95;
+        }
         
         try {
-            // 生成数据URL
-            const imgData = tempCanvas.toDataURL(`image/${format}`, format === 'jpg' ? 0.9 : undefined);
+            // 生成图片数据
+            const imgData = tempCanvas.toDataURL(mimeType, quality);
             
-            // 针对不同环境使用不同的保存策略
-            if (isWechat || isQQ) {
-                // 微信/QQ内置浏览器中打开新页面显示图片
-                this.showImageInFullscreen(imgData, filename);
-            } else if (isIOS) {
-                // 在iOS上使用全屏显示方法
-                this.showImageInFullscreen(imgData, filename);
-            } else if (isAndroid) {
-                // 尝试直接下载，如果失败则显示图片
-                this.tryDownloadOrShow(imgData, filename);
-            } else {
-                // 桌面设备 - 使用标准下载方式
-                const link = document.createElement('a');
-                link.download = filename;
-                link.href = imgData;
-                link.click();
-            }
-        } catch (e) {
-            console.error('导出图片失败:', e);
-            // 回退到模态框显示
-            this.showExportModal('生成图片失败，正在尝试备用方法...', null);
+            // 创建文件名
+            const date = new Date();
+            const timestamp = `${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}${date.getSeconds().toString().padStart(2, '0')}`;
+            const filename = `线迹幻境_${this.width}x${this.height}_${timestamp}.${format}`;
             
-            try {
-                // 尝试使用blob方式
-                tempCanvas.toBlob((blob) => {
-                    if (blob) {
-                        // 尝试使用Blob URL
-                        const blobUrl = URL.createObjectURL(blob);
-                        
-                        if (isMobile) {
-                            // 在移动设备上显示图片
-                            this.showImageInFullscreen(blobUrl, filename, true);
-                        } else {
-                            // 桌面设备 - 使用标准下载方式
-                            const link = document.createElement('a');
-                            link.download = filename;
-                            link.href = blobUrl;
-                            link.click();
-                            setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-                        }
-                    } else {
-                        this.updateExportModal('图片生成失败，请尝试降低分辨率或使用其他浏览器', null);
-                    }
-                }, `image/${format}`, format === 'jpg' ? 0.9 : undefined);
-            } catch (e2) {
-                console.error('备用导出方法失败:', e2);
-                this.updateExportModal('无法处理图片，请尝试截屏保存或使用其他浏览器', null);
-            }
+            // 使用辅助函数尝试下载或显示
+            this.tryDownloadOrShow(imgData, filename);
+        } catch (error) {
+            this.showExportModal('导出失败：' + error.message);
         }
     }
 
     drawLineOnCanvas(line, ctx, resolution) {
         ctx.beginPath();
-        ctx.moveTo(line.start.x * resolution, line.start.y * resolution);
-        ctx.bezierCurveTo(
-            line.control1.x * resolution, line.control1.y * resolution,
-            line.control2.x * resolution, line.control2.y * resolution,
-            line.end.x * resolution, line.end.y * resolution
-        );
-        ctx.lineWidth = line.width * resolution;
-        ctx.strokeStyle = '#000000';
+        ctx.moveTo(line.start.x, line.start.y);
+        
+        // 适应不同格式的线条对象
+        if (line.controlPoints && line.controlPoints.length > 0) {
+            // 使用控制点数组绘制贝塞尔曲线
+            if (line.controlPoints.length === 1) {
+                // 二次贝塞尔曲线
+                const cp = line.controlPoints[0];
+                ctx.quadraticCurveTo(cp.x, cp.y, line.end.x, line.end.y);
+            } else {
+                // 三次或多点贝塞尔曲线
+                let currentPoint = line.start;
+                
+                for (let i = 0; i < line.controlPoints.length; i++) {
+                    const cp = line.controlPoints[i];
+                    
+                    if (i === line.controlPoints.length - 1) {
+                        // 最后一个控制点连接到终点
+                        const dx = line.end.x - cp.x;
+                        const dy = line.end.y - cp.y;
+                        const ratio = 0.5;
+                        const cp2x = cp.x + dx * ratio;
+                        const cp2y = cp.y + dy * ratio;
+                        
+                        ctx.bezierCurveTo(cp.x, cp.y, cp2x, cp2y, line.end.x, line.end.y);
+                    } else {
+                        // 中间控制点
+                        const nextCp = line.controlPoints[i + 1];
+                        const midX = (cp.x + nextCp.x) / 2;
+                        const midY = (cp.y + nextCp.y) / 2;
+                        
+                        ctx.quadraticCurveTo(cp.x, cp.y, midX, midY);
+                        currentPoint = { x: midX, y: midY };
+                    }
+                }
+            }
+        } else if (line.control1 && line.control2) {
+            // 使用两个控制点的三次贝塞尔曲线
+            ctx.bezierCurveTo(
+                line.control1.x, line.control1.y,
+                line.control2.x, line.control2.y,
+                line.end.x, line.end.y
+            );
+        } else {
+            // 直线
+            ctx.lineTo(line.end.x, line.end.y);
+        }
+        
+        ctx.lineWidth = line.width;
+        ctx.strokeStyle = line.color || '#000000';
         
         // 使用线条对象中的端点样式
-        ctx.lineCap = line.cap;
+        ctx.lineCap = line.cap || 'round';
         
         ctx.stroke();
     }
@@ -726,121 +1062,144 @@ class LineGenerator {
 
     // 导出SVG格式
     exportSVG() {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const filename = `线迹幻境_${timestamp}.svg`;
-        
-        // 检测设备类型
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        // 创建SVG
-        const bg = document.getElementById('bg-color').value;
-        const bgOpacity = document.getElementById('bg-opacity').value / 100;
-        const lineCount = parseInt(document.getElementById('line-count').value);
-        
-        // 创建SVG元素
-        const svgNS = "http://www.w3.org/2000/svg";
-        const svg = document.createElementNS(svgNS, "svg");
-        svg.setAttribute("width", this.width);
-        svg.setAttribute("height", this.height);
-        svg.setAttribute("xmlns", svgNS);
-        svg.setAttribute("viewBox", `0 0 ${this.width} ${this.height}`);
-        
-        // 添加背景矩形
-        const rect = document.createElementNS(svgNS, "rect");
-        rect.setAttribute("width", "100%");
-        rect.setAttribute("height", "100%");
-        rect.setAttribute("fill", bg);
-        rect.setAttribute("opacity", bgOpacity);
-        svg.appendChild(rect);
-        
-        // 设置随机种子
-        const lineSeed = Date.now();
-        Math.seedrandom && Math.seedrandom(lineSeed);
-        
-        // 生成线条
-        for (let i = 0; i < lineCount; i++) {
-            const line = this.generateLine();
-            
-            // 创建路径元素
-            const path = document.createElementNS(svgNS, "path");
-            path.setAttribute("d", `M${line.start.x},${line.start.y} C${line.control1.x},${line.control1.y} ${line.control2.x},${line.control2.y} ${line.end.x},${line.end.y}`);
-            path.setAttribute("stroke", "#000000");
-            path.setAttribute("stroke-width", line.width);
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke-linecap", line.cap);
-            
-            svg.appendChild(path);
-        }
-        
-        // 转换为SVG字符串
-        const svgData = new XMLSerializer().serializeToString(svg);
-        const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-        const svgUrl = URL.createObjectURL(svgBlob);
-        
         try {
-            if (isIOS) {
-                // iOS设备无法直接下载SVG，提供查看和复制选项
-                this.showExportModal(`
-                    <strong>SVG格式在iOS上不支持直接保存</strong><br>
-                    请选择以下方法之一：<br>
-                    1. 截屏并编辑保存图片<br>
-                    2. 使用PNG或JPG格式重新导出<br>
-                    3. 在电脑上使用这个功能
-                `, null);
+            // 获取当前尺寸
+            const width = this.width;
+            const height = this.height;
+            
+            // 获取背景颜色和透明度
+            const bgColor = document.getElementById('bg-color').value;
+            const opacity = document.getElementById('bg-opacity').value / 100;
+            
+            // 创建SVG文档
+            let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`;
+            
+            // 添加背景
+            if (opacity > 0) {
+                // 解析背景颜色
+                const r = parseInt(bgColor.slice(1, 3), 16);
+                const g = parseInt(bgColor.slice(3, 5), 16);
+                const b = parseInt(bgColor.slice(5, 7), 16);
                 
-                // 创建一个查看SVG的链接
-                const viewLink = document.createElement('a');
-                viewLink.href = svgUrl;
-                viewLink.target = '_blank';
-                viewLink.textContent = '在新窗口查看SVG';
-                viewLink.className = 'btn';
-                viewLink.style.marginRight = '10px';
-                viewLink.style.display = 'inline-block';
-                viewLink.style.textDecoration = 'none';
-                
-                // 添加到模态框
-                document.getElementById('export-image-container').appendChild(viewLink);
-            } else if (isMobile) {
-                // 其他移动设备 - 尝试直接保存
-                const link = document.createElement('a');
-                link.href = svgUrl;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                setTimeout(() => {
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(svgUrl);
-                    
-                    this.showExportModal(`
-                        <strong>SVG文件已准备下载</strong><br>
-                        如果下载失败，您可以：<br>
-                        1. 尝试使用PNG或JPG格式<br>
-                        2. 在电脑上使用SVG格式
-                    `, null);
-                }, 100);
-            } else {
-                // 桌面设备 - 标准下载
-                const link = document.createElement('a');
-                link.href = svgUrl;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                setTimeout(() => {
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(svgUrl);
-                }, 100);
+                // 填充背景
+                svgContent += `<rect width="${width}" height="${height}" fill="rgba(${r}, ${g}, ${b}, ${opacity})" />`;
             }
-        } catch (e) {
-            console.error('SVG导出失败:', e);
-            this.showExportModal('SVG导出失败，请尝试使用PNG或JPG格式', null);
+            
+            // 添加网格（如果启用）
+            if (document.getElementById('show-grid').checked) {
+                const gridSize = 50;
+                const gridColor = 'rgba(0, 0, 0, 0.1)';
+                
+                // 横线
+                for (let y = gridSize; y < height; y += gridSize) {
+                    svgContent += `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="${gridColor}" stroke-width="1" />`;
+                }
+                
+                // 竖线
+                for (let x = gridSize; x < width; x += gridSize) {
+                    svgContent += `<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="${gridColor}" stroke-width="1" />`;
+                }
+            }
+            
+            // 添加所有线条
+            if (this.canvas.__lines && this.canvas.__lines.length > 0) {
+                for (const line of this.canvas.__lines) {
+                    // 添加路径
+                    svgContent += `<path d="M${line.start.x},${line.start.y}`;
+                    
+                    if (line.controlPoints && line.controlPoints.length > 0) {
+                        // 贝塞尔曲线
+                        const controlPoints = line.controlPoints;
+                        
+                        if (controlPoints.length === 1) {
+                            // 二次贝塞尔曲线
+                            const cp = controlPoints[0];
+                            svgContent += ` Q${cp.x},${cp.y} ${line.end.x},${line.end.y}`;
+                        } else {
+                            // 多点曲线，使用C命令（三次贝塞尔曲线）
+                            let currentPoint = line.start;
+                            
+                            for (let i = 0; i < controlPoints.length; i++) {
+                                const cp = controlPoints[i];
+                                
+                                // 如果是最后一个控制点，连接到终点
+                                if (i === controlPoints.length - 1) {
+                                    // 计算另一个控制点（从控制点向终点方向的点）
+                                    const dx = line.end.x - cp.x;
+                                    const dy = line.end.y - cp.y;
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    const ratio = 0.5; // 控制点到终点距离的比例
+                                    
+                                    const cp2x = cp.x + dx * ratio;
+                                    const cp2y = cp.y + dy * ratio;
+                                    
+                                    svgContent += ` C${cp.x},${cp.y} ${cp2x},${cp2y} ${line.end.x},${line.end.y}`;
+                                } else {
+                                    // 连接到下一个控制点
+                                    const nextCp = controlPoints[i + 1];
+                                    const midX = (cp.x + nextCp.x) / 2;
+                                    const midY = (cp.y + nextCp.y) / 2;
+                                    
+                                    svgContent += ` Q${cp.x},${cp.y} ${midX},${midY}`;
+                                    currentPoint = { x: midX, y: midY };
+                                }
+                            }
+                        }
+                    } else {
+                        // 直线
+                        svgContent += ` L${line.end.x},${line.end.y}`;
+                    }
+                    
+                    // 线条样式
+                    svgContent += `" stroke="${line.color}" stroke-width="${line.width}" fill="none" stroke-linecap="${line.cap}" />`;
+                }
+            } else {
+                // 如果没有保存的线条数据，重新生成
+                const lineCount = parseInt(document.getElementById('line-count').value);
+                for (let i = 0; i < lineCount; i++) {
+                    const line = this.generateLine();
+                    // 添加路径
+                    svgContent += `<path d="M${line.start.x},${line.start.y}`;
+                    
+                    if (line.control1 && line.control2) {
+                        // 三次贝塞尔曲线
+                        svgContent += ` C${line.control1.x},${line.control1.y} ${line.control2.x},${line.control2.y} ${line.end.x},${line.end.y}`;
+                    } else {
+                        // 直线
+                        svgContent += ` L${line.end.x},${line.end.y}`;
+                    }
+                    
+                    // 线条样式
+                    svgContent += `" stroke="#000000" stroke-width="${line.width}" fill="none" stroke-linecap="${line.cap}" />`;
+                }
+            }
+            
+            // 结束SVG
+            svgContent += '</svg>';
+            
+            // 创建Blob
+            const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            // 创建文件名
+            const date = new Date();
+            const timestamp = `${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}${date.getSeconds().toString().padStart(2, '0')}`;
+            const filename = `线迹幻境_${width}x${height}_${timestamp}.svg`;
+            
+            // 使用辅助函数尝试下载或显示
+            this.tryDownloadOrShow(url, filename, true);
+        } catch (error) {
+            this.showExportModal('SVG导出失败：' + error.message);
         }
     }
 
     // 尝试下载，如果失败则显示
-    tryDownloadOrShow(imgData, filename) {
+    tryDownloadOrShow(imgData, filename, isBlob = false) {
+        // 判断是否为移动设备
+        const isMobile = this.isMobileDevice();
+        
         try {
-            // 尝试使用a标签下载
+            // 创建下载链接
             const link = document.createElement('a');
             link.href = imgData;
             link.download = filename;
@@ -855,13 +1214,24 @@ class LineGenerator {
             setTimeout(() => {
                 document.body.removeChild(link);
                 
-                // 显示提示和备用选项
-                this.showExportModal('图片已准备下载，如未自动保存，请长按图片手动保存', imgData);
+                if (isMobile) {
+                    // 移动端：调整页面进行保存
+                    this.showImageInFullscreen(imgData, filename, isBlob);
+                } else {
+                    // PC端：直接下载，无需弹窗
+                    console.log('图片下载已开始，文件名：' + filename);
+                }
             }, 100);
         } catch (e) {
             console.error('下载尝试失败:', e);
-            // 回退到直接显示
-            this.showImageInFullscreen(imgData, filename);
+            
+            if (isMobile) {
+                // 移动端：调整页面进行保存
+                this.showImageInFullscreen(imgData, filename, isBlob);
+            } else {
+                // PC端：如果直接下载失败，则回退到弹窗
+                this.showExportModal('图片下载失败，请右键点击图片选择"图片另存为"', imgData);
+            }
         }
     }
 
@@ -901,35 +1271,33 @@ class LineGenerator {
                         display: flex;
                         flex-direction: column;
                         height: 100%;
-                        padding: 20px;
+                        padding: 16px;
                         text-align: center;
                     }
                     
                     .header {
-                        padding: 15px 0;
-                        margin-bottom: 10px;
+                        padding: 12px 0;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
                     }
                     
                     h1 {
-                        font-size: 20px;
-                        font-weight: 600;
-                        margin-bottom: 10px;
+                        font-size: 18px;
+                        font-weight: 500;
+                        color: #fff;
+                        flex: 1;
+                        text-align: center;
+                    }
+                    
+                    .back-btn {
+                        background: none;
+                        border: none;
                         color: #2196f3;
-                    }
-                    
-                    .tips {
-                        background-color: rgba(33, 150, 243, 0.15);
-                        border-radius: 12px;
-                        padding: 15px;
-                        margin-bottom: 20px;
-                        line-height: 1.5;
-                        text-align: left;
-                        font-size: 14px;
-                    }
-                    
-                    .tips li {
-                        margin-bottom: 8px;
-                        list-style-position: inside;
+                        font-size: 16px;
+                        padding: 8px;
+                        cursor: pointer;
+                        font-weight: 500;
                     }
                     
                     .img-container {
@@ -940,154 +1308,52 @@ class LineGenerator {
                         position: relative;
                         overflow: auto;
                         -webkit-overflow-scrolling: touch;
-                        margin-bottom: 15px;
+                        margin: 10px 0;
                     }
                     
                     .img-container img {
                         max-width: 100%;
                         max-height: 100%;
                         object-fit: contain;
-                        user-select: none;
-                        -webkit-user-drag: none;
-                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
                         background-color: #fff;
-                        border-radius: 4px;
                     }
                     
-                    .footer {
-                        padding: 10px 0;
-                        font-size: 13px;
-                        color: #aaa;
-                    }
-                    
-                    .touch-hint {
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        background-color: rgba(0, 0, 0, 0.7);
-                        color: white;
-                        padding: 15px 25px;
-                        border-radius: 30px;
-                        font-size: 16px;
-                        pointer-events: none;
-                        opacity: 0;
-                        transition: opacity 0.3s;
-                    }
-                    
-                    .touch-hint.show {
-                        opacity: 1;
-                        animation: pulse 2s infinite;
-                    }
-                    
-                    @keyframes pulse {
-                        0% { transform: translate(-50%, -50%) scale(1); }
-                        50% { transform: translate(-50%, -50%) scale(1.05); }
-                        100% { transform: translate(-50%, -50%) scale(1); }
-                    }
-                    
-                    .actions {
-                        display: flex;
-                        justify-content: center;
-                        gap: 10px;
-                        margin-bottom: 20px;
-                    }
-                    
-                    .btn {
-                        background-color: #2196f3;
-                        color: white;
-                        border: none;
-                        padding: 10px 16px;
-                        border-radius: 20px;
+                    .hint-text {
+                        position: fixed;
+                        bottom: 20px;
+                        left: 0;
+                        right: 0;
+                        text-align: center;
+                        background-color: rgba(0,0,0,0.6);
+                        padding: 10px;
                         font-size: 14px;
-                        font-weight: 500;
-                        cursor: pointer;
-                        transition: background-color 0.2s;
-                    }
-                    
-                    .btn:active {
-                        background-color: #1976d2;
-                        transform: scale(0.98);
+                        color: white;
                     }
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>图片预览</h1>
-                        <div class="tips">
-                            <ul>
-                                <li><strong>长按图片</strong>选择"存储图像"或"添加到照片"</li>
-                                <li>如果长按无效，请尝试<strong>截屏</strong>保存</li>
-                                <li>某些浏览器可能需要点击图片后再保存</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="actions">
-                        <button class="btn" id="fullscreen-btn">全屏查看</button>
-                        <button class="btn" id="hint-btn">显示提示</button>
+                        <button class="back-btn" onclick="window.close()">返回</button>
+                        <h1>长按图片保存</h1>
                     </div>
                     <div class="img-container">
-                        <img src="${imgData}" alt="预览图片" id="preview-img">
-                        <div class="touch-hint" id="touch-hint">长按图片保存</div>
+                        <img src="${imgData}" alt="保存图片">
                     </div>
-                    <div class="footer">
-                        线迹幻境 - 长按图片保存 - ${new Date().toLocaleString()}
-                    </div>
+                    <div class="hint-text">长按图片选择"保存图像"选项</div>
                 </div>
                 <script>
-                    // 检测图片加载状态
-                    document.getElementById('preview-img').onload = function() {
-                        console.log('图片加载成功');
-                    };
-                    
-                    document.getElementById('preview-img').onerror = function() {
-                        console.error('图片加载失败');
-                        alert('图片加载失败，请返回重试');
-                    };
-                    
-                    // 添加图片点击事件，某些移动浏览器需要先点击才能保存
-                    document.getElementById('preview-img').addEventListener('click', function(e) {
-                        const hint = document.getElementById('touch-hint');
-                        hint.classList.add('show');
+                    // 图片加载完成后隐藏提示，3秒后显示
+                    document.querySelector('img').onload = function() {
+                        const hint = document.querySelector('.hint-text');
                         setTimeout(() => {
-                            hint.classList.remove('show');
-                        }, 3000);
-                    });
-                    
-                    // 全屏查看按钮
-                    document.getElementById('fullscreen-btn').addEventListener('click', function() {
-                        if (document.documentElement.requestFullscreen) {
-                            document.documentElement.requestFullscreen();
-                        } else if (document.documentElement.webkitRequestFullscreen) {
-                            document.documentElement.webkitRequestFullscreen();
-                        } else if (document.documentElement.msRequestFullscreen) {
-                            document.documentElement.msRequestFullscreen();
-                        }
-                    });
-                    
-                    // 显示提示按钮
-                    document.getElementById('hint-btn').addEventListener('click', function() {
-                        const hint = document.getElementById('touch-hint');
-                        hint.classList.add('show');
-                        setTimeout(() => {
-                            hint.classList.remove('show');
-                        }, 3000);
-                    });
-                    
-                    // 检测是否为iOS设备
-                    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-                    
-                    // 对iOS设备特别提示
-                    if (isIOS) {
-                        setTimeout(() => {
-                            const hint = document.getElementById('touch-hint');
-                            hint.classList.add('show');
+                            hint.style.opacity = '1';
                             setTimeout(() => {
-                                hint.classList.remove('show');
-                            }, 3000);
+                                hint.style.opacity = '0.7';
+                            }, 2000);
                         }, 1000);
-                    }
+                    };
                 </script>
             </body>
             </html>
@@ -1338,6 +1604,43 @@ class LineGenerator {
                 container.classList.remove('zooming');
             }
         }, 300);
+    }
+
+    // 更新状态栏
+    updateStatusbar() {
+        // 获取显示模式
+        const displayMode = document.getElementById('display-mode').value;
+        const displayModeText = displayMode === 'auto' ? '自适应' : 
+                               displayMode === 'original' ? '原始尺寸' : 
+                               displayMode === 'fit-width' ? '适应宽度' : '适应高度';
+        
+        // 获取线条数量
+        const lineCount = parseInt(document.getElementById('line-count').value || '8');
+        
+        // 更新状态栏
+        const statusText = document.getElementById('status-text');
+        if (statusText) {
+            statusText.textContent = `线迹数: ${lineCount} / 画布尺寸: ${this.width}x${this.height} / 显示模式: ${displayModeText}`;
+        }
+    }
+
+    // 获取边缘上的随机点
+    getRandomPointOnEdge(edge) {
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        
+        switch (edge) {
+            case 0: // 上边缘
+                return [Math.random() * width, 0];
+            case 1: // 右边缘
+                return [width, Math.random() * height];
+            case 2: // 下边缘
+                return [Math.random() * width, height];
+            case 3: // 左边缘
+                return [0, Math.random() * height];
+            default:
+                return [0, 0]; // 默认返回左上角
+        }
     }
 }
 

@@ -63,12 +63,24 @@
           <h3>尺寸控制</h3>
           <div class="control-group">
             <label>快捷尺寸:</label>
-            <div class="quick-size-buttons">
-              <button class="size-btn" data-width="500" data-height="500">500×500</button>
-              <button class="size-btn" data-width="800" data-height="800">800×800</button>
-              <button class="size-btn" data-width="1000" data-height="1000">1000×1000</button>
-              <button class="size-btn" data-width="1200" data-height="600">1200×600</button>
-            </div>
+            <select id="quick-size-selector" class="size-selector">
+              <option value="custom">自定义尺寸</option>
+              <option value="200x200">200×200</option>
+              <option value="400x400">400×400</option>
+              <option value="600x600">600×600</option>
+              <option value="800x800">800×800</option>
+              <option value="1000x1000">1000×1000</option>
+              <option value="1200x1200">1200×1200</option>
+              <option value="1400x1400">1400×1400</option>
+              <option value="1600x1600">1600×1600</option>
+              <option value="1800x1800">1800×1800</option>
+              <option value="2000x2000">2000×2000</option>
+              <option value="2200x2200">2200×2200</option>
+              <option value="2400x2400">2400×2400</option>
+              <option value="2600x2600">2600×2600</option>
+              <option value="2800x2800">2800×2800</option>
+              <option value="3000x3000">3000×3000</option>
+            </select>
           </div>
           <div class="control-group">
             <label>宽度 (px):</label>
@@ -156,6 +168,41 @@
             </div>
           </div>
           <div class="control-group">
+            <label>快捷曲线选择:</label>
+            <select id="quick-curve-selector" class="curve-selector">
+              <option value="custom">自定义曲线</option>
+              <option value="0">0% (直线)</option>
+              <option value="10">10%</option>
+              <option value="20">20%</option>
+              <option value="30">30%</option>
+              <option value="40">40%</option>
+              <option value="50">50%</option>
+              <option value="60">60%</option>
+              <option value="70">70%</option>
+              <option value="80">80%</option>
+              <option value="90">90%</option>
+              <option value="100">100%</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>线条颜色模式:</label>
+            <div class="mode-selector">
+              <label>
+                <input type="radio" name="color-mode" id="color-mode-black" value="black" checked>
+                纯黑色
+              </label>
+              <label>
+                <input type="radio" name="color-mode" id="color-mode-theme" value="theme">
+                主题配色
+              </label>
+              <label>
+                <input type="radio" name="color-mode" id="color-mode-random" value="random">
+                完全随机
+              </label>
+            </div>
+            <div class="tip-text" id="color-tip">使用统一的黑色线条</div>
+          </div>
+          <div class="control-group">
             <label>线迹宽度:</label>
             <div class="range-inputs">
               <input type="number" id="min-width" value="5" min="0.5" max="20" step="0.5">
@@ -187,7 +234,7 @@
           <div class="control-group">
             <label>背景颜色:</label>
             <div class="color-control">
-              <input type="color" id="bg-color" value="#ffffff">
+              <input type="color" id="bg-color" value="#ffffff" class="color-with-border">
               <button id="reset-bg-color" class="reset-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
                   <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
