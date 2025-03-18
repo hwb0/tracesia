@@ -890,7 +890,7 @@ class LineGenerator {
             // 创建文件名
             const date = new Date();
             const timestamp = `${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}${date.getSeconds().toString().padStart(2, '0')}`;
-            const filename = `线迹幻境_${this.width}x${this.height}_${timestamp}.${format}`;
+            const filename = `tracesia_${this.width}x${this.height}_${timestamp}.${format}`;
             
             // 使用辅助函数尝试下载或显示
             this.tryDownloadOrShow(imgData, filename);
@@ -1184,7 +1184,7 @@ class LineGenerator {
             // 创建文件名
             const date = new Date();
             const timestamp = `${date.getFullYear()}${(date.getMonth()+1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}${date.getSeconds().toString().padStart(2, '0')}`;
-            const filename = `线迹幻境_${width}x${height}_${timestamp}.svg`;
+            const filename = `tracesia_${width}x${height}_${timestamp}.svg`;
             
             // 使用辅助函数尝试下载或显示
             this.tryDownloadOrShow(url, filename, true);
