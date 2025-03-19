@@ -1,0 +1,15 @@
+/* 主样式文件，导入所有模块 */
+@import 'base.css';
+@import 'layout.css';
+@import 'panel.css';
+@import 'preview.css';
+@import 'buttons.css';
+@import 'modal.css';
+
+/* 任何还未归类的样式可以放在这里 */
+
+/* 动画 */
+@keyframes pulse {
+    from { opacity: 0.2; }
+    to { opacity: 0.4; }
+} 

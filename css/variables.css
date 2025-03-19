@@ -1,0 +1,97 @@
+/* CSS变量 - 定义应用的主题和设计风格 */
+:root {
+    /* 颜色系统 */
+    --primary-color: #4361ee;
+    --primary-hover-color: #3a56d4;
+    --primary-light: rgba(67, 97, 238, 0.1);
+    --secondary-color: #ff5e7d;
+    --accent-color: #9d4edd;
+    
+    /* 中性色 */
+    --body-bg: #f8fafc;
+    --panel-background: #ffffff;
+    --panel-hover-bg: #f7f9fc;
+    --canvas-container-bg: #f5f7fa;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --divider-color: rgba(0, 0, 0, 0.05);
+    
+    /* 文本色 */
+    --text-color: #2d3748;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    
+    /* 按钮颜色 */
+    --button-bg: #f1f5f9;
+    --button-hover-bg: #e2e8f0;
+    --button-text: #334155;
+    --subtle-button-bg: rgba(0, 0, 0, 0.04);
+    --subtle-button-hover-bg: rgba(0, 0, 0, 0.08);
+    --subtle-button-text: #475569;
+    
+    /* 交互状态 */
+    --focus-color: rgba(67, 97, 238, 0.5);
+    --error-color: #ef4444;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --info-color: #3b82f6;
+    
+    /* 视觉效果 */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --panel-radius: 16px;
+    --card-radius: 12px;
+    --button-radius: 10px;
+    
+    /* 动画 */
+    --animation-curve: cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: 150ms;
+    --transition-normal: 250ms;
+    --transition-slow: 350ms;
+    
+    /* 间距和大小 */
+    --content-width: 1200px;
+    --header-height: 60px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* 字体 */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    
+    /* Z-index系统 */
+    --z-index-dropdown: 1000;
+    --z-index-modal: 2000;
+    --z-index-tooltip: 3000;
+}
+
+/* 深色主题 - 在未来版本中实现 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* 深色主题变量 - 待实现 */
+        /* 
+        --body-bg: #0f172a;
+        --panel-background: #1e293b;
+        --panel-hover-bg: #263447;
+        --canvas-container-bg: #1a2234;
+        --border-color: rgba(255, 255, 255, 0.08);
+        --divider-color: rgba(255, 255, 255, 0.05);
+        
+        --text-color: #e2e8f0;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        
+        --button-bg: #334155;
+        --button-hover-bg: #475569;
+        --button-text: #f1f5f9;
+        */
+    }
+} 

@@ -1,0 +1,527 @@
+/* 按钮样式 */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    padding: 10px 18px;
+    font-size: 0.95em;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s var(--animation-curve);
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    letter-spacing: 0.01em;
+}
+
+.btn:hover {
+    background-color: var(--button-hover-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+}
+
+.btn.btn-primary:hover {
+    background-color: var(--primary-hover-color);
+}
+
+.btn.btn-subtle {
+    background-color: var(--subtle-button-bg);
+    color: var(--subtle-button-text);
+    box-shadow: none;
+}
+
+.btn.btn-subtle:hover {
+    background-color: var(--subtle-button-hover-bg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.btn-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-circle.small {
+    width: 36px;
+    height: 36px;
+}
+
+.btn-circle.large {
+    width: 52px;
+    height: 52px;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    font-size: 1.2em;
+}
+
+.btn.icon-only .btn-icon {
+    margin-right: 0;
+}
+
+.btn-icon svg {
+    width: 20px;
+    height: 20px;
+    opacity: 0.9;
+}
+
+/* 底部操作区按钮 - 通用样式 */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    padding: 16px;
+    background-color: var(--panel-background);
+    border-radius: 0 0 var(--panel-radius) var(--panel-radius);
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.action-buttons .btn {
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-buttons .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+    transform: translateX(-100%);
+    transition: 0.6s;
+}
+
+.action-buttons .btn:hover::before {
+    transform: translateX(100%);
+}
+
+/* 底部操作栏 - 统一风格 */
+.action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--mobile-footer-height);
+    background-color: rgba(255, 255, 255, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px 20px;
+    margin-bottom: 0;
+    padding-bottom: calc(10px + var(--safe-area-inset-bottom));
+    z-index: 1000;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--border-color);
+    transition: all 0.3s var(--animation-curve);
+}
+
+.action-bar:hover {
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 导出和重生成按钮 - 统一样式 */
+#export-btn, #regenerate-btn, 
+#mobile-export-btn, #mobile-regenerate-btn {
+    padding: 10px 20px;
+    font-size: 0.95em;
+    min-width: 140px;
+    border-radius: 12px;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    height: 44px;
+    transition: all 0.3s var(--animation-curve);
+    margin: 0 10px;
+}
+
+#export-btn, #mobile-export-btn {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+}
+
+#regenerate-btn, #mobile-regenerate-btn {
+    background-color: var(--button-bg);
+    color: var(--text-color);
+}
+
+#export-btn:hover, #regenerate-btn:hover,
+#mobile-export-btn:hover, #mobile-regenerate-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+#export-btn:active, #regenerate-btn:active,
+#mobile-export-btn:active, #mobile-regenerate-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#export-btn .btn-icon, #regenerate-btn .btn-icon,
+#mobile-export-btn .btn-icon, #mobile-regenerate-btn .btn-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 0.9;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .btn {
+        font-size: 0.9em;
+        padding: 8px 16px;
+    }
+    
+    .action-buttons {
+        margin-top: 12px;
+    }
+    
+    .action-buttons .btn {
+        padding: 8px 14px;
+    }
+    
+    .btn-circle {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .btn-circle.small {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .btn-circle.large {
+        width: 48px;
+        height: 48px;
+    }
+    
+    /* 移动设备操作按钮 */
+    #export-btn, #regenerate-btn, 
+    #mobile-export-btn, #mobile-regenerate-btn {
+        padding: 8px 16px;
+        font-size: 0.9em;
+        min-width: 120px;
+        height: 40px;
+        margin: 0 8px;
+    }
+    
+    .action-bar {
+        padding: 8px 10px;
+        padding-bottom: calc(8px + var(--safe-area-inset-bottom));
+        gap: 10px;
+    }
+    
+    #export-btn .btn-icon, #regenerate-btn .btn-icon,
+    #mobile-export-btn .btn-icon, #mobile-regenerate-btn .btn-icon {
+        width: 16px;
+        height: 16px;
+        margin-right: 4px;
+    }
+}
+
+@keyframes slide-up {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* 次要按钮 */
+.btn-secondary {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(33, 150, 243, 0.08);
+    color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+/* 警告按钮 */
+.btn-danger {
+    background-color: var(--error-color);
+    color: white;
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #d32f2f;
+    border-color: #d32f2f;
+}
+
+/* 按钮尺寸变体 */
+.btn-lg {
+    padding: 12px 20px;
+    font-size: 1em;
+    min-height: 52px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85em;
+    min-height: 36px;
+}
+
+/* 全宽按钮 */
+.btn-block {
+    display: flex;
+    width: 100%;
+}
+
+/* 按钮组 */
+.btn-group {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-group-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 重置按钮 */
+.reset-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 0.9em;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s var(--animation-curve);
+    opacity: 0.8;
+    gap: 4px;
+}
+
+.reset-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    opacity: 1;
+}
+
+.reset-btn .icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+}
+
+/* 操作按钮 */
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s var(--animation-curve);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.action-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+/* 波纹效果 */
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+}
+
+.btn-ripple:focus:not(:active)::after {
+    animation: ripple 0.8s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    20% {
+        transform: scale(25, 25);
+        opacity: 0.3;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(40, 40);
+    }
+}
+
+/* 表单元素样式 */
+select, .width-select, .size-selector, .curve-selector {
+    appearance: none;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.95em;
+    width: 100%;
+    outline: none;
+    cursor: pointer;
+    color: var(--text-color);
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    transition: all 0.2s ease;
+}
+
+select:hover, .width-select:hover, .size-selector:hover, .curve-selector:hover {
+    border-color: var(--primary-color);
+}
+
+select:focus, .width-select:focus, .size-selector:focus, .curve-selector:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px rgba(33, 150, 243, 0.2);
+}
+
+/* 快捷选择按钮组 */
+.quick-size-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+/* 步进控制器 */
+.stepper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 70px;
+}
+
+.stepper-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(33, 150, 243, 0.08);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.stepper-btn svg {
+    stroke: var(--primary-color);
+    transition: all 0.15s ease;
+}
+
+.stepper-btn:hover {
+    background-color: rgba(33, 150, 243, 0.15);
+    transform: scale(1.05);
+}
+
+.stepper-btn:hover svg {
+    stroke-width: 2.5;
+}
+
+.stepper span {
+    font-size: 0.9em;
+    min-width: 30px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.range-with-stepper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+/* PC端操作按钮 - 已移除，注释掉相关CSS */
+/*
+.pc-action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.pc-action-buttons .btn {
+    min-width: 160px;
+}
+
+@media (max-width: 768px) {
+    .pc-action-buttons {
+        display: none;
+    }
+}
+*/ 

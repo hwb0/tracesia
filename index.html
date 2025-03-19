@@ -8,37 +8,32 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="format-detection" content="telephone=no">
   <meta name="msapplication-tap-highlight" content="no">
-  <meta name="theme-color" content="#2196f3">
+  <meta name="theme-color" content="#4361ee">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="author" content="线迹幻境">
   <meta name="robots" content="noarchive">
   <title>线迹幻境</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    :root {
-      --primary-color: #2196f3;
-      --secondary-color: #1e88e5;
-      --text-color: #333;
-      --border-color: #e0e0e0;
-      --panel-background: #ffffff;
-      --background-color: #f5f5f5;
-      --safe-area-inset-top: 0px;
-      --safe-area-inset-bottom: 0px;
-      --mobile-header-height: 56px;
-      --mobile-footer-height: 64px;
-    }
-  </style>
+  <!-- 先加载变量和基础样式 -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <!-- 组件样式 -->
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/buttons.css">
+  <link rel="stylesheet" href="css/controls.css">
+  <link rel="stylesheet" href="css/preview.css">
+  <!-- 主样式表 -->
+  <link rel="stylesheet" href="css/main.css">
 </head>
 
 <body>
   <!-- 顶部状态栏 -->
   <div class="top-bar">
     <button class="menu-toggle" id="menu-toggle">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
+      <div class="menu-icon">
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
     </button>
     <div class="top-bar-title">线迹幻境</div>
   </div>
@@ -65,30 +60,27 @@
             <label>快捷尺寸:</label>
             <select id="quick-size-selector" class="size-selector">
               <option value="custom">自定义尺寸</option>
+              <option value="100x100">100×100</option>
               <option value="200x200">200×200</option>
+              <option value="300x300">300×300</option>
               <option value="400x400">400×400</option>
+              <option value="500x500" selected>500×500</option>
               <option value="600x600">600×600</option>
+              <option value="700x700">700×700</option>
               <option value="800x800">800×800</option>
+              <option value="900x900">900×900</option>
               <option value="1000x1000">1000×1000</option>
-              <option value="1200x1200">1200×1200</option>
-              <option value="1400x1400">1400×1400</option>
-              <option value="1600x1600">1600×1600</option>
-              <option value="1800x1800">1800×1800</option>
-              <option value="2000x2000">2000×2000</option>
-              <option value="2200x2200">2200×2200</option>
-              <option value="2400x2400">2400×2400</option>
-              <option value="2600x2600">2600×2600</option>
-              <option value="2800x2800">2800×2800</option>
-              <option value="3000x3000">3000×3000</option>
             </select>
           </div>
-          <div class="control-group">
-            <label>宽度 (px):</label>
-            <input type="number" id="width" value="500" min="100" max="4000">
-          </div>
-          <div class="control-group">
-            <label>高度 (px):</label>
-            <input type="number" id="height" value="500" min="100" max="4000">
+          <div class="control-group size-inputs-group">
+            <div class="size-input-wrap">
+              <label>宽度 (px):</label>
+              <input type="number" id="width" value="500" min="100" max="1000" step="100">
+            </div>
+            <div class="size-input-wrap">
+              <label>高度 (px):</label>
+              <input type="number" id="height" value="500" min="100" max="1000" step="100">
+            </div>
           </div>
           <div class="control-group">
             <label>显示模式:</label>
@@ -113,7 +105,7 @@
           <div class="control-group">
             <label>线迹数量:</label>
             <div class="range-with-stepper">
-              <input type="range" id="line-count" min="1" max="500" value="8">
+              <input type="range" id="line-count" min="1" max="100" value="8" step="1">
               <div class="stepper">
                 <button class="stepper-btn" data-target="line-count" data-action="decrease">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -132,20 +124,21 @@
           </div>
           <div class="control-group">
             <label>线迹模式:</label>
-            <div class="mode-selector">
+            <div class="mode-selector mode-selector-modern">
               <label>
                 <input type="radio" name="line-mode" id="mode-through" value="through">
-                贯穿模式
+                <span class="selector-label">贯穿模式</span>
               </label>
               <label>
                 <input type="radio" name="line-mode" id="mode-random" value="random">
-                随机模式
+                <span class="selector-label">随机模式</span>
               </label>
               <label>
                 <input type="radio" name="line-mode" id="mode-mixed" value="mixed" checked>
-                混合模式
+                <span class="selector-label">混合模式</span>
               </label>
             </div>
+            <div class="tip-text" id="line-mode-tip">混合使用贯穿模式和随机模式</div>
           </div>
           <div class="control-group">
             <label>曲线强度:</label>
@@ -186,44 +179,52 @@
           </div>
           <div class="control-group">
             <label>线条颜色模式:</label>
-            <div class="mode-selector">
+            <div class="mode-selector mode-selector-modern">
               <label>
                 <input type="radio" name="color-mode" id="color-mode-black" value="black" checked>
-                纯黑色
+                <span class="selector-label">纯黑色</span>
               </label>
               <label>
                 <input type="radio" name="color-mode" id="color-mode-theme" value="theme">
-                主题配色
+                <span class="selector-label">主题配色</span>
               </label>
               <label>
                 <input type="radio" name="color-mode" id="color-mode-random" value="random">
-                完全随机
+                <span class="selector-label">完全随机</span>
               </label>
             </div>
             <div class="tip-text" id="color-tip">使用统一的黑色线条</div>
           </div>
           <div class="control-group">
-            <label>线迹宽度:</label>
+            <label>线迹宽度范围:</label>
             <div class="range-inputs">
-              <input type="number" id="min-width" value="5" min="0.5" max="20" step="0.5">
-              <span>至</span>
-              <input type="number" id="max-width" value="15" min="0.5" max="20" step="0.5">
+              <div class="width-input-group">
+                <span class="width-label">最小</span>
+                <input type="number" id="min-width" value="0.5" min="0.5" max="10" step="0.5" class="width-input">
+                <span class="width-unit">px</span>
+              </div>
+              <span class="width-separator">至</span>
+              <div class="width-input-group">
+                <span class="width-label">最大</span>
+                <input type="number" id="max-width" value="4" min="1" max="10" step="0.5" class="width-input">
+                <span class="width-unit">px</span>
+              </div>
             </div>
           </div>
           <div class="control-group">
             <label>端点样式:</label>
-            <div class="mode-selector">
+            <div class="mode-selector mode-selector-modern">
               <label>
                 <input type="radio" name="line-cap" id="cap-default" value="butt">
-                默认
+                <span class="selector-label">默认</span>
               </label>
               <label>
                 <input type="radio" name="line-cap" id="cap-round" value="round">
-                圆角
+                <span class="selector-label">圆角</span>
               </label>
               <label>
                 <input type="radio" name="line-cap" id="cap-mixed" value="mixed" checked>
-                混合
+                <span class="selector-label">混合</span>
               </label>
             </div>
           </div>
@@ -287,30 +288,51 @@
         <div class="scale-info" id="zoom-value">1x (自适应)</div>
       </div>
       <div class="status-bar">
-        <span id="status-text">线条数: 8 / 画布尺寸: 500x500</span>
+        <div class="status-bar-left">
+          <span id="status-text">线条数: 8 / 画布尺寸: 500x500</span>
+        </div>
+        <div class="status-bar-right">
+          <span id="line-mode-display">混合模式</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 固定在底部的操作按钮 -->
-  <div class="export-bar">
-    <button id="regenerate-btn" class="btn btn-secondary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
-        <path d="M23 4v6h-6"></path>
-        <path d="M1 20v-6h6"></path>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
-        <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
-      </svg>
-      重绘线迹
+  <!-- 移动端底部操作按钮栏 -->
+  <div class="action-bar">
+    <button id="regenerate-btn" class="btn">
+      <div class="btn-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 4v6h-6"></path>
+          <path d="M1 20v-6h6"></path>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+          <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+        </svg>
+      </div>
+      <span>重绘线条</span>
     </button>
-    <button id="export-btn" class="btn">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="7 10 12 15 17 10"></polyline>
-        <line x1="12" y1="15" x2="12" y2="3"></line>
-      </svg>
-      导出图片
+    <button id="export-btn" class="btn btn-primary">
+      <div class="btn-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </div>
+      <span>导出图片</span>
     </button>
+  </div>
+
+  <!-- PC端底部信息栏 -->
+  <div class="pc-info-bar">
+    <div class="status-info">
+      <div id="pc-status-text" class="status-text">
+        线条数: 0 / 画布尺寸: 500x500 / 显示模式: 自适应
+      </div>
+      <div id="pc-line-mode" class="line-mode-display">
+        混合模式
+      </div>
+    </div>
   </div>
 
   <!-- 导出消息模态框 -->
@@ -325,7 +347,7 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 
 </html>

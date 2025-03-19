@@ -1,0 +1,416 @@
+/* 控制面板样式 */
+.control-panel {
+    width: 340px;
+    background-color: var(--panel-background);
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 面板头部样式 */
+.panel-header {
+    display: none;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    background-color: var(--panel-background);
+    z-index: 100;
+    height: calc(var(--mobile-header-height) + var(--safe-area-inset-top));
+    padding-top: var(--safe-area-inset-top);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+
+.panel-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text-color);
+    opacity: 0.85;
+    text-align: center;
+    letter-spacing: 0.02em;
+}
+
+.close-panel {
+    position: absolute;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.close-panel:hover {
+    background: rgba(0, 0, 0, 0.05);
+    opacity: 0.9;
+}
+
+.panel-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+}
+
+.panel-section:last-child {
+    border-bottom: none;
+    padding-bottom: 30px;
+}
+
+.panel-section h3 {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--primary-color);
+    letter-spacing: 0.03em;
+    position: relative;
+    padding-left: 14px;
+}
+
+.panel-section h3::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 18px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+}
+
+.control-group {
+    margin-bottom: 18px;
+    position: relative;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    font-weight: 500;
+    color: var(--text-color);
+    opacity: 0.9;
+    user-select: none;
+}
+
+/* 尺寸输入组样式 */
+.size-inputs-group {
+    display: flex;
+    gap: 16px;
+}
+
+.size-input-wrap {
+    flex: 1;
+}
+
+.size-input-wrap input {
+    width: 100%;
+}
+
+/* 宽度输入组样式 */
+.width-input-group {
+    display: flex;
+    align-items: center;
+    background-color: var(--input-background);
+    border-radius: 8px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+}
+
+.width-label {
+    font-size: 0.85em;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-right: 6px;
+}
+
+.width-input {
+    width: 50px !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    text-align: center;
+}
+
+.width-unit {
+    font-size: 0.85em;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-left: 3px;
+}
+
+.width-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    color: var(--text-color);
+    opacity: 0.5;
+}
+
+.range-inputs {
+    display: flex;
+    align-items: center;
+}
+
+/* 选择器现代样式 */
+.mode-selector-modern {
+    display: flex;
+    background-color: var(--input-background);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.mode-selector-modern label {
+    flex: 1;
+    margin: 0;
+    position: relative;
+}
+
+.mode-selector-modern input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.mode-selector-modern .selector-label {
+    display: block;
+    text-align: center;
+    padding: 8px 4px;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+    border-right: 1px solid var(--border-color);
+}
+
+.mode-selector-modern label:last-child .selector-label {
+    border-right: none;
+}
+
+.mode-selector-modern input[type="radio"]:checked + .selector-label {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+}
+
+.mode-selector-modern input[type="radio"]:not(:checked) + .selector-label:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* 提示文本优化 */
+.tip-text {
+    font-size: 0.85em;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-top: 6px;
+    margin-left: 2px;
+    font-style: italic;
+}
+
+/* 滑块和步进器优化 */
+.range-with-stepper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.range-with-stepper input[type="range"] {
+    flex: 1;
+    margin-right: 8px;
+}
+
+.stepper {
+    display: flex;
+    align-items: center;
+    background-color: var(--input-background);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.stepper-btn {
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stepper-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.stepper span {
+    padding: 0 8px;
+    font-size: 0.9em;
+    min-width: 32px;
+    text-align: center;
+}
+
+/* 增强下拉选择器样式 */
+select.size-selector,
+select.curve-selector {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-background);
+    font-size: 0.95em;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+/* 输入框样式统一 */
+input[type="number"],
+input[type="text"] {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-background);
+    font-size: 0.95em;
+}
+
+/* 改进滑块样式 */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.control-group input[type="color"] {
+    -webkit-appearance: none;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.color-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.color-control input[type="color"] {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    padding: 0;
+    margin: 0;
+}
+
+.color-with-border {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.color-with-border:hover, .color-with-border:focus {
+    border-color: var(--primary-color);
+}
+
+.reset-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: #f5f5f5;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reset-btn .icon {
+    width: 14px;
+    height: 14px;
+}
+
+.reset-btn:hover {
+    background: #eee;
+    border-color: #ddd;
+}
+
+.panel-sections-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: calc(100vh - var(--mobile-header-height) * 2);
+}
+
+.panel-sections-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.panel-sections-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.panel-sections-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.panel-sections-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+} 

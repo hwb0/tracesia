@@ -1,0 +1,260 @@
+/* 模态框样式 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: var(--panel-background);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-content h3 {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-color);
+    letter-spacing: 0.02em;
+}
+
+.modal-content p {
+    margin-bottom: 16px;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+#export-message {
+    margin-bottom: 16px;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+#export-image-container {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+#export-image-container img {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    display: block;
+    margin: 0 auto;
+}
+
+#export-image-container::after {
+    content: "长按图片保存";
+    position: absolute;
+    bottom: -30px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.85em;
+    color: #666;
+    padding: 4px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+#export-image-container a.btn {
+    margin: 16px auto 0;
+    display: inline-flex;
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .modal-buttons {
+        justify-content: center;
+    }
+
+    #export-image-container {
+        margin: 16px 0;
+    }
+
+    #export-image-container img {
+        max-height: 300px;
+    }
+}
+
+/* 导出模态框 */
+.export-modal {
+    /* ... existing code ... */
+}
+
+/* 全屏预览模态框 */
+.fullscreen-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.fullscreen-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.fullscreen-img-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.fullscreen-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.fullscreen-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    z-index: 10000;
+}
+
+.fullscreen-close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.fullscreen-download-btn {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 30px;
+    background-color: #2196f3;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    z-index: 10000;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.fullscreen-download-btn:hover {
+    background-color: #1976d2;
+}
+
+/* 为移动设备优化全屏模态框 */
+@media (max-width: 768px) {
+    .fullscreen-close-btn {
+        top: 15px;
+        right: 15px;
+        width: 36px;
+        height: 36px;
+    }
+    
+    .fullscreen-img-container {
+        padding: 10px;
+    }
+}
+
+/* 适配深色模式 */
+@media (prefers-color-scheme: dark) {
+    .fullscreen-modal {
+        background-color: rgba(0, 0, 0, 0.95);
+    }
+}
+
+/* 适配安全区域 - 支持iPhone X以上设备 */
+@supports (padding: max(0px)) {
+    .fullscreen-modal {
+        padding-top: max(20px, env(safe-area-inset-top));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        padding-left: max(20px, env(safe-area-inset-left));
+        padding-right: max(20px, env(safe-area-inset-right));
+    }
+    
+    .fullscreen-close-btn {
+        top: max(20px, env(safe-area-inset-top));
+        right: max(20px, env(safe-area-inset-right));
+    }
+    
+    .fullscreen-download-btn {
+        bottom: max(30px, env(safe-area-inset-bottom) + 10px);
+    }
+} 
