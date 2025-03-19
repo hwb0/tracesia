@@ -95,9 +95,9 @@ class LineGenerator {
         if (useHighDPI && scaleFactor < 1) {
             // 高质量模式：保持Canvas分辨率不变，只缩小显示尺寸
             // 此时Canvas的绘图分辨率为原始尺寸
-            this.canvas.width = this.width;
-            this.canvas.height = this.height;
-            
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        
             // 设置分辨率相关属性
             this.ctx.imageSmoothingEnabled = true;
             this.ctx.imageSmoothingQuality = 'high';
@@ -150,8 +150,8 @@ class LineGenerator {
         // 事件委托
         document.addEventListener('click', (e) => {
             const target = e.target;
-            
-            // 快捷尺寸按钮
+
+        // 快捷尺寸按钮
             if (target.closest('.size-btn')) {
                 const sizeBtn = target.closest('.size-btn');
                 const size = sizeBtn.getAttribute('data-size');
@@ -205,19 +205,19 @@ class LineGenerator {
                 this.draw();
             }
         });
-        
+
         // 线条数量滑块
         document.getElementById('line-count').addEventListener('input', (e) => {
             document.getElementById('line-count-value').textContent = e.target.value;
             this.draw();
         });
-        
+
         // 曲线强度滑块
         document.getElementById('curve-strength').addEventListener('input', (e) => {
             document.getElementById('curve-strength-value').textContent = `${e.target.value}%`;
             this.draw();
         });
-        
+
         // 背景透明度滑块
         document.getElementById('bg-opacity').addEventListener('input', (e) => {
             document.getElementById('bg-opacity-value').textContent = `${e.target.value}%`;
@@ -228,7 +228,7 @@ class LineGenerator {
         document.querySelectorAll('input[name="line-mode"]').forEach(radio => {
             radio.addEventListener('change', () => this.draw());
         });
-        
+
         // 端点样式单选框
         document.querySelectorAll('input[name="line-cap"]').forEach(radio => {
             radio.addEventListener('change', () => this.draw());
@@ -254,7 +254,7 @@ class LineGenerator {
                     }
                 }
                 // 重绘
-                this.draw();
+            this.draw();
             });
         });
         
@@ -270,10 +270,10 @@ class LineGenerator {
             document.getElementById('bg-opacity-value').textContent = '100%';
             this.draw();
         });
-        
+
         // 显示网格复选框
         document.getElementById('show-grid').addEventListener('change', () => this.draw());
-        
+
         // 增减按钮的事件处理
         document.querySelectorAll('.stepper-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -472,7 +472,7 @@ class LineGenerator {
     draw() {
         // 清除画布
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
+
         // 获取背景颜色和透明度
         const bgColor = document.getElementById('bg-color').value;
         const opacity = document.getElementById('bg-opacity').value / 100;
@@ -486,14 +486,14 @@ class LineGenerator {
             
             // 应用透明度
             this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
-        
+
         // 如果启用网格，绘制网格
         if (document.getElementById('show-grid').checked) {
             this.drawGrid();
         }
-        
+
         // 获取当前活动的线条模式
         let lineMode = '';
         document.querySelectorAll('input[name="line-mode"]').forEach(radio => {
@@ -646,7 +646,7 @@ class LineGenerator {
         
         // 保存线条数据到canvas实例，用于导出
         this.canvas.__lines = lines;
-        
+
         // 更新状态栏
         this.updateStatusbar();
     }
@@ -759,7 +759,7 @@ class LineGenerator {
         // 计算网格大小
         const gridSize = 50;
         const offset = 0.5; // 0.5像素偏移，防止模糊
-        
+
         // 绘制垂直线
         for (let x = 0; x <= this.width; x += gridSize) {
             const alignedX = Math.floor(x) + offset;
@@ -802,7 +802,7 @@ class LineGenerator {
         // 设置临时Canvas尺寸
         tempCanvas.width = this.width * resolution;
         tempCanvas.height = this.height * resolution;
-        
+
         // 获取背景颜色和透明度
         const bgColor = document.getElementById('bg-color').value;
         const opacity = document.getElementById('bg-opacity').value / 100;
@@ -816,7 +816,7 @@ class LineGenerator {
             
             // 填充背景
             tempCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         }
         
         // 如果启用网格，绘制网格
@@ -868,9 +868,9 @@ class LineGenerator {
             }
         } else {
             // 如果没有保存的线条数据，重新生成
-            for (let i = 0; i < lineCount; i++) {
-                const line = this.generateLine();
-                this.drawLineOnCanvas(line, tempCtx, resolution);
+        for (let i = 0; i < lineCount; i++) {
+            const line = this.generateLine();
+            this.drawLineOnCanvas(line, tempCtx, resolution);
             }
         }
         
@@ -893,7 +893,7 @@ class LineGenerator {
             const filename = `tracesia_${this.width}x${this.height}_${timestamp}.${format}`;
             
             // 使用辅助函数尝试下载或显示
-            this.tryDownloadOrShow(imgData, filename);
+                this.tryDownloadOrShow(imgData, filename);
         } catch (error) {
             this.showExportModal('导出失败：' + error.message);
         }
@@ -910,7 +910,7 @@ class LineGenerator {
                 // 二次贝塞尔曲线
                 const cp = line.controlPoints[0];
                 ctx.quadraticCurveTo(cp.x, cp.y, line.end.x, line.end.y);
-            } else {
+                        } else {
                 // 三次或多点贝塞尔曲线
                 let currentPoint = line.start;
                 
@@ -939,7 +939,7 @@ class LineGenerator {
             }
         } else if (line.control1 && line.control2) {
             // 使用两个控制点的三次贝塞尔曲线
-            ctx.bezierCurveTo(
+        ctx.bezierCurveTo(
                 line.control1.x, line.control1.y,
                 line.control2.x, line.control2.y,
                 line.end.x, line.end.y
@@ -1134,7 +1134,7 @@ class LineGenerator {
                                     const cp2y = cp.y + dy * ratio;
                                     
                                     svgContent += ` C${cp.x},${cp.y} ${cp2x},${cp2y} ${line.end.x},${line.end.y}`;
-                                } else {
+            } else {
                                     // 连接到下一个控制点
                                     const nextCp = controlPoints[i + 1];
                                     const midX = (cp.x + nextCp.x) / 2;
@@ -1198,6 +1198,12 @@ class LineGenerator {
         // 判断是否为移动设备
         const isMobile = this.isMobileDevice();
         
+        if (isMobile) {
+            // 移动端：直接跳转到新页面进行保存
+            this.showImageInFullscreen(imgData, filename, isBlob);
+            return;
+        }
+        
         try {
             // 创建下载链接
             const link = document.createElement('a');
@@ -1214,24 +1220,14 @@ class LineGenerator {
             setTimeout(() => {
                 document.body.removeChild(link);
                 
-                if (isMobile) {
-                    // 移动端：调整页面进行保存
-                    this.showImageInFullscreen(imgData, filename, isBlob);
-                } else {
-                    // PC端：直接下载，无需弹窗
-                    console.log('图片下载已开始，文件名：' + filename);
-                }
+                // PC端：直接下载，无需弹窗
+                console.log('图片下载已开始，文件名：' + filename);
             }, 100);
         } catch (e) {
             console.error('下载尝试失败:', e);
             
-            if (isMobile) {
-                // 移动端：调整页面进行保存
-                this.showImageInFullscreen(imgData, filename, isBlob);
-            } else {
-                // PC端：如果直接下载失败，则回退到弹窗
-                this.showExportModal('图片下载失败，请右键点击图片选择"图片另存为"', imgData);
-            }
+            // PC端：如果直接下载失败，则回退到弹窗
+            this.showExportModal('图片下载失败，请右键点击图片选择"图片另存为"', imgData);
         }
     }
 
@@ -1349,7 +1345,7 @@ class LineGenerator {
                         const hint = document.querySelector('.hint-text');
                         setTimeout(() => {
                             hint.style.opacity = '1';
-                            setTimeout(() => {
+                        setTimeout(() => {
                                 hint.style.opacity = '0.7';
                             }, 2000);
                         }, 1000);
@@ -1511,9 +1507,9 @@ class LineGenerator {
                 const baseScale = this.currentScaleFactor || 1;
                 const useHighDPI = document.getElementById('high-quality').checked;
                 
-                // 限制缩放范围，如果启用高质量渲染，允许更大范围的缩放
-                const minScale = useHighDPI ? baseScale * 0.3 : baseScale * 0.5;  // 高质量模式下可以缩小更多
-                const maxScale = baseScale * 3;    // 允许放大到3倍
+                // 限制缩放范围，提高移动端的缩放体验
+                const minScale = useHighDPI ? baseScale * 0.6 : baseScale * 0.7;  // 缩小限制更严格，防止过度缩小
+                const maxScale = baseScale * 2;    // 限制放大倍数，防止过度放大
                 
                 currentScale = Math.max(minScale, Math.min(currentScale, maxScale));
                 
@@ -1556,14 +1552,25 @@ class LineGenerator {
         });
         
         // 双击重置变换
-        canvas.addEventListener('dblclick', () => {
+        canvas.addEventListener('dblclick', resetTransform.bind(this));
+        
+        // 添加对内容区域的双击监听
+        container.addEventListener('dblclick', resetTransform.bind(this));
+        
+        // 重置变换的函数
+        function resetTransform() {
             translateX = 0;
             translateY = 0;
             currentScale = 1;
             initialScale = 1;
             
             // 重置为自适应状态
-            this.initializeCanvas();
+            canvas.style.transform = 'translate(-50%, -50%)';
+            
+            // 重置整个Canvas
+            setTimeout(() => {
+                this.initializeCanvas();
+            }, 50);
             
             container.classList.remove('panning');
             container.classList.remove('zooming');
@@ -1575,7 +1582,7 @@ class LineGenerator {
                     touchHint.classList.remove('active');
                 }, 1500);
             }
-        });
+        }
         
         // 监听窗口大小变化
         let lastWindowWidth = window.innerWidth;
